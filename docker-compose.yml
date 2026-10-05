@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: byb-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-byb}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-byb}
+      POSTGRES_DB: ${POSTGRES_DB:-byb}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-byb} -d ${POSTGRES_DB:-byb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    container_name: byb-backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-byb}:${POSTGRES_PASSWORD:-byb}@postgres:5432/${POSTGRES_DB:-byb}
+      NODE_ENV: development
+      PORT: 3001
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./shared:/app/shared
+      - ./backend:/app/backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: npm run dev --workspace=backend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.dev
+    container_name: byb-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./shared:/app/shared
+      - /app/.next
+    depends_on:
+      - backend
+    command: npm run dev --workspace=frontend
+
+volumes:
+  postgres_data:

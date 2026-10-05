@@ -1,0 +1,305 @@
+{
+  "common": {
+    "search": "ძიება",
+    "discover": "აღმოკრება",
+    "deals": "შეთავაზებები",
+    "guides": "გზნები",
+    "categories": "კატეგორიები",
+    "searchPlaceholder": "უბრძანეთ, რას ეძებთ...",
+    "askBYB": "ჰკითხეთ BYB-ს",
+    "searching": "ძიება...",
+    "loading": "იტვირთება...",
+    "noResults": "შედეგები არ მოიძებნა",
+    "tryAdjusting": "სცადეთ ძიების შეცვლა ან ფილტრების შეცვლა",
+    "clearSearch": "ძიების გასუფთავება",
+    "showingResults": "ჩაწერილია <strong>{{count}}</strong> - <strong>{{total}}</strong>-დან, საძიებო გამოსახულებები: <strong>\"{{query}}\"</strong>",
+    "sortBy": "სორტირება:",
+    "relevance": "რელევანტურობა",
+    "priceAsc": "ფასი: დაბალი → მაღალი",
+    "priceDesc": "ფასი: მაღალი → დაბალი",
+    "newest": "ყველაზე ახალი",
+    "previous": "წინა",
+    "next": "შემდეგი",
+    "pageOf": "გვერდი {{page}} / {{totalPages}}",
+    "viewAll": "ყველას ნახვა →",
+    "compareOffers": "{{count}} შეთავაზების შედარება",
+    "buyOn": "ყიდვა {{merchant}}-ზე",
+    "bestOffer": "უკეთესი შეთავაზება",
+    "allOffers": "ყველა შეთავაზება ({{count}})",
+    "backToSearch": "ძიებაზე დაბრუნება",
+    "productNotFound": "პროდუქტი ვერ მოიძებნა",
+    "failedToLoad": "წარუმატებელია ჩატვირთვა. გადაამოწმეთ, არის თუ არა ბექენდი გაშვებული.",
+    "error": "შეცდომა",
+    "retry": "ხომალი",
+    "close": "დახურვა",
+    "open": "გახსნა",
+    "save": "შენახვა",
+    "cancel": "გაუქმება",
+    "confirm": "დადასტურება",
+    "delete": "წაშლა",
+    "edit": "რედაქტირება",
+    "view": "ნახვა",
+    "more": "მეტი",
+    "less": "ნაკლები",
+    "filter": "ფილტრი",
+    "sort": "დალაგება",
+    "clear": "გასუფთავება",
+    "apply": "მойти",
+    "reset": "გაუქმება"
+  },
+  "homepage": {
+    "hero": {
+      "title": "BEFORE YOU BUY",
+      "subtitle": "იპოვეთ ის, რაც ნამდვილად გჭირდება — არა უბრალოდ პროდუქტი.",
+      "description": "მაღაზიებში ნუ ეძებ. უთხარი BYB-ს რა გჭირდება.",
+      "placeholder": "მჭირდება კარგი ყურსასმენები მოგზაურობისთვის, 500 ლარამდე...",
+      "cta": "ჰკითხე BYB-ს",
+      "examples": {
+        "label": "სცადეთ:",
+        "items": [
+          "ყურსასმენები მოგზაურობისთვის 500 ლარამდე",
+          "დაწყებათა მ piedები მარკულად ვбия",
+          "კაფე მანქანა პატარა კუხნისთვის",
+          "ძ مقاومتის მანძილი BMW F30-ისთვის",
+          "ზღვის ჩატარების კომპლექტი დამწყებთვის"
+        ]
+      },
+      "inputModes": {
+        "photo": "ფოტო",
+        "voice": "ხმოვანი",
+        "link": "ლინკის ჩასმა"
+      }
+    },
+    "sections": {
+      "explore": "BYB-ს შესწავლა",
+      "trending": "პოპულარული BYB-ზე",
+      "popular": "პოპულარული",
+      "deals": "უკეთესი შეთავაზებები",
+      "newReleases": "ახალი გამოშვებები",
+      "rare": "გადაუვლებელი / ნაკლებად ნაპოვნი",
+      "priceDrops": "ფასის ყველაზე დიდი ვარდნა",
+      "newInteresting": "ახალი და საინტერესო",
+      "popularComparisons": "პოპულარული შედარებები",
+      "guides": "რა უნდა იცოდე ყიდვამდე",
+      "asking": "რა არის ინტერესული ადამიანებს BYB-ში"
+    },
+    "explore": {
+      "tech": {
+        "title": "ტექნოლოგიები",
+        "description": "ტელეფონები · კომპიუტერები · Audio · Gaming"
+      },
+      "auto": {
+        "title": "ავტო",
+        "description": "ნაწილები · აქსესუარები · შეთანხმება"
+      },
+      "home": {
+        "title": "სახლი",
+        "description": "კუხნი · სახლური ტექნიკა · ტევები"
+      },
+      "outdoors": {
+        "title": "გარეთ",
+        "description": "ფიში · კემპინგი · გავლა"
+      },
+      "fashion": {
+        "title": "მოდა",
+        "description": "რიობი · ფეხსაცმელი · აქსესუარები"
+      },
+      "beauty": {
+        "title": "სილამაზე",
+        "description": "რეული · მეიქაპი · ტყვი"
+      },
+      "sports": {
+        "title": "სპორტი",
+        "description": "მოთხოვნები · სამოსელი · ჰრანათევი"
+      },
+      "kids": {
+        "title": "ბავშვები",
+        "description": "ცეკვები · სამოსელი · აღჭურვილობა"
+      },
+      "pets": {
+        "title": "ბićი",
+        "description": "საკვები · ცეკვები · საშუალებები"
+      },
+      "tools": {
+        "title": "ინსტრუმენტები",
+        "description": "ელექტრო ინსტრუმენტები · ხელის ინსტრუმენტები · უსაფრთხოება"
+      },
+      "comingSoon": "მალე"
+    },
+    "trending": {
+      "title": "პოპულარული BYB-ზე",
+      "empty": "პოპულარული პროდუქტები არ მოიძებნა."
+    },
+    "popular": {
+      "title": "პოპულარული",
+      "empty": "პოპულარული პროდუქტები არ მოიძებნა."
+    },
+    "deals": {
+      "title": "უკეთესი შეთავაზებები",
+      "empty": "შეთავაზებები არ მოიძებნა."
+    },
+    "newReleases": {
+      "title": "ახალი გამოშვებები",
+      "empty": "ახალი გამოშვებები არ მოიძებნა."
+    },
+    "rare": {
+      "title": "გადაუვლებელი / ნაკლებად ნაპოვნი",
+      "empty": "გადაუვლებელი პროდუქტები არ მოიძებნა."
+    },
+    "market": {
+      "shoppingFrom": "ყიდვები {{market}}-დან?",
+      "delivery": "მიწოდება",
+      "localAvailability": "ადგილობრივი ხელმისაწვდომობა",
+      "currency": "ვალუტა",
+      "customs": "სადაზნაო ინფორმაცია"
+    }
+  },
+  "header": {
+    "nav": {
+      "discover": "აღმოკრება",
+      "deals": "შეთავაზებები",
+      "guides": "გზნები",
+      "categories": "კატეგორიები"
+    },
+    "market": "ბაზარი",
+    "language": "ენა",
+    "selectMarket": "ბაზარის არჩევა",
+    "selectLanguage": "ენის არჩევა"
+  },
+  "search": {
+    "title": "ძიების შედეგები",
+    "placeholder": "პროდუქტების ძიება...",
+    "noResults": "შედეგები არ მოიძებნა",
+    "tryAdjusting": "სცადეთ ძიების ან ფილტრების შეცვლა",
+    "clearSearch": "ძიების გასუფთავება",
+    "showingResults": "ჩაწერილია <strong>{{count}}</strong> - <strong>{{total}}</strong>-დან, საძიებო გამოსახულებები: <strong>\"{{query}}\"</strong>",
+    "sortBy": "სორტირება:",
+    "relevance": "რელევანტურობა",
+    "priceAsc": "ფასი: დაბალი → მაღალი",
+    "priceDesc": "ფასი: მაღალი → დაბალი",
+    "newest": "ყველაზე ახალი",
+    "previous": "წინა",
+    "next": "შემდეგი",
+    "pageOf": "გვერდი {{page}} / {{totalPages}}"
+  },
+  "product": {
+    "comparePrices": "ფასების შედარება",
+    "merchantOffers": "{{count}} მერჩანტის შეთავაზება",
+    "bestPrice": "უჯობესი ფასი",
+    "description": "აღწერა",
+    "specifications": "სპეციფიკაცია",
+    "allOffers": "ყველა შეთავაზება ({{count}})",
+    "bestOffer": "უკეთესი შეთავაზება",
+    "buyOn": "ყიდვა {{merchant}}-ზე",
+    "availability": {
+      "in_stock": "მარაგში არის",
+      "limited": "შეზღუდული მარაგი",
+      "pre_order": "წინასწარ შეკვეთა",
+      "out_of_stock": "მარაგში არ არის",
+      "unknown": "უცნობი"
+    },
+    "specificationsTitle": "სპეციფიკაცია",
+    "descriptionTitle": "აღწერა",
+    "allOffers": "ყველა შეთავაზება ({{count}})",
+    "viewAllOffers": "ყველა {{count}} შეთავაზების ნახვა",
+    "breadcrumb": {
+      "home": "მთავარი",
+      "search": "ძიება"
+    },
+    "model": "მოდელი: {{model}}",
+    "compare": {
+      "merchant": "მერჩანტი",
+      "price": "ფასი",
+      "availability": "ხელმისაწვდომობა",
+      "shipping": "მიწოდება",
+      "action": "ქმედება"
+    },
+    "shipping": {
+      "free": "ასე mật charakter"
+    }
+  },
+  "footer": {
+    "tagline": "Before You Buy — მაღაზიებში ნუ ეძებ. უთხარი BYB-ს რა გჭირდება.",
+    "product": "პროდუქტი",
+    "company": "კომპანია",
+    "legal": "კანონმდებლობა",
+    "links": {
+      "search": "ძიება",
+      "trending": "პოპულარული",
+      "deals": "უკეთესი შეთავაზებები",
+      "categories": "კატეგორიები",
+      "newReleases": "ახალი გამოშვებები",
+      "about": "ჩვენს შესახებ",
+      "blog": "ბლოგი",
+      "careers": "კარიერა",
+      "press": "პრესა",
+      "privacy": "კონფიდენციალურობა",
+      "terms": "წესები",
+      "cookies": "Cookie-ები",
+      "affiliate": "Affiliate Disclosure"
+    },
+    "copyright": "© {{year}} BYB. All rights reserved. არ არის ონლაინ მაღაზია — ჯერ შემოწმდი, შემდეგ ვყიდი."
+  },
+  "explore": {
+    "tech": {
+      "title": "ტექნოლოგიები",
+      "description": "ტელეფონები · კომპიუტერები · Audio · Gaming"
+    },
+    "auto": {
+      "title": "ავტო",
+      "description": "ნაწილები · აქსესუარები · შეთანხმება"
+    },
+    "home": {
+      "title": "სახლი",
+      "description": "კუხნი · სახლური ტექნიკა · ტევები"
+    },
+    "outdoors": {
+      "title": "გარეთ",
+      "description": "ფიში · კემპინგი · გავლა"
+    },
+    "fashion": {
+      "title": "მოდა",
+      "description": "რიობი · ფეხსაცმელი · აქსესუარები"
+    },
+    "beauty": {
+      "title": "სილამაზე",
+      "description": "რეული · მეიქაპი · ტყვი"
+    },
+    "sports": {
+      "title": "სპორტი",
+      "description": "მოთხოვნები · სამოსელი · ჰრანათევი"
+    },
+    "kids": {
+      "title": "ბავშვები",
+      "description": "ცეკვები · სამოსელი · აღჭურვილობა"
+    },
+    "pets": {
+      "title": "ბićი",
+      "description": "საკვები · ცეკვები · საშუალებები"
+    },
+    "tools": {
+      "title": "ინსტრუმენტები",
+      "description": "ელექტრო ინსტრუმენტები · ხელის ინსტრუმენტები · უსაფრთხოება"
+    },
+    "comingSoon": "მალე"
+  },
+  "market": {
+    "shoppingFrom": "ყიდვები {{market}}-დან?",
+    "delivery": "მიწოდება",
+    "localAvailability": "ადგილობრივი ხელმისაწვდომობა",
+    "currency": "ვალუტა",
+    "customs": "სადაზნაო ინფორმაცია"
+  },
+  "categories": {
+    "tech": "ტექნოლოგიები",
+    "auto": "ავტო",
+    "home": "სახლი",
+    "outdoors": "გარეთ",
+    "fashion": "მოდა",
+    "beauty": "სილამაზე",
+    "sports": "სპორტი",
+    "kids": "ბავშვები",
+    "pets": "ბićი",
+    "tools": "ინსტრუმენტები"
+  }
+}

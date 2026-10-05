@@ -1,0 +1,21 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache postgresql-client
+
+COPY package*.json ./
+COPY shared/package*.json ./shared/
+COPY backend/package*.json ./backend/
+
+RUN npm ci --workspaces --include-workspace-root
+
+COPY shared ./shared
+COPY backend ./backend
+
+RUN npm run build --workspace=shared
+RUN npm run build --workspace=backend
+
+EXPOSE 3001
+
+CMD ["npm", "run", "dev", "--workspace=backend"]

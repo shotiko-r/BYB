@@ -1,0 +1,18 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY shared/package*.json ./shared/
+COPY frontend/package*.json ./frontend/
+
+RUN npm ci --workspaces --include-workspace-root
+
+COPY shared ./shared
+COPY frontend ./frontend
+
+RUN npm run build --workspace=shared
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev", "--workspace=frontend"]

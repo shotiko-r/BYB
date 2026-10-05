@@ -1,0 +1,326 @@
+{
+  "common": {
+    "search": "Search",
+    "discover": "Discover",
+    "deals": "Deals",
+    "guides": "Guides",
+    "categories": "Categories",
+    "searchPlaceholder": "Tell us what you're looking for...",
+    "askBYB": "Ask BYB",
+    "searching": "Searching...",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "tryAdjusting": "Try adjusting your search or filters",
+    "clearSearch": "Clear search",
+    "showingResults": "Showing <strong>{{count}}</strong> of <strong>{{total}}</strong> results for <strong>\"{{query}}\"</strong>",
+    "sortBy": "Sort by:",
+    "relevance": "Relevance",
+    "priceAsc": "Price: Low to High",
+    "priceDesc": "Price: High to Low",
+    "newest": "Newest",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{page}} of {{totalPages}}",
+    "viewAll": "View all →",
+    "compareOffers": "Compare {{count}} offers",
+    "buyOn": "Buy on {{merchant}}",
+    "bestOffer": "Best Offer",
+    "allOffers": "All Offers ({{count}})",
+    "backToSearch": "Back to Search",
+    "productNotFound": "Product Not Found",
+    "failedToLoad": "Failed to load. Make sure the backend is running.",
+    "error": "Error",
+    "retry": "Retry",
+    "close": "Close",
+    "open": "Open",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "more": "More",
+    "less": "Less",
+    "filter": "Filter",
+    "sort": "Sort",
+    "clear": "Clear",
+    "apply": "Apply",
+    "reset": "Reset"
+  },
+  "homepage": {
+    "hero": {
+      "title": "BEFORE YOU BUY",
+      "subtitle": "Find the right thing, not just a product.",
+      "description": "Don't search stores. Tell BYB what you need.",
+      "placeholder": "I need headphones for travel under $200...",
+      "cta": "Ask BYB",
+      "examples": {
+        "label": "Try:",
+        "items": [
+          "headphones for travel under $200",
+          "running shoes for beginners",
+          "coffee machine for small kitchen",
+          "brake pads for BMW F30",
+          "fishing setup for beginner"
+        ]
+      },
+      "inputModes": {
+        "photo": "Photo",
+        "voice": "Voice",
+        "link": "Paste link"
+      }
+    },
+    "sections": {
+      "explore": "Explore BYB",
+      "trending": "Trending across BYB",
+      "popular": "Popular",
+      "deals": "Best Deals",
+      "newReleases": "New Releases",
+      "rare": "Rare / Hard to Find",
+      "priceDrops": "Biggest Price Drops",
+      "newInteresting": "New & Interesting",
+      "popularComparisons": "Popular Comparisons",
+      "guides": "Before You Buy Guides",
+      "asking": "What People Are Asking BYB"
+    },
+    "explore": {
+      "tech": {
+        "title": "Tech",
+        "description": "Phones · Computers · Audio · Gaming"
+      },
+      "auto": {
+        "title": "Auto",
+        "description": "Parts · Accessories · Compatibility"
+      },
+      "home": {
+        "title": "Home",
+        "description": "Kitchen · Appliances · Furniture"
+      },
+      "outdoors": {
+        "title": "Outdoors",
+        "description": "Fishing · Camping · Hiking"
+      },
+      "fashion": {
+        "title": "Fashion",
+        "description": "Clothing · Shoes · Accessories"
+      },
+      "beauty": {
+        "title": "Beauty",
+        "description": "Skincare · Makeup · Haircare"
+      },
+      "sports": {
+        "title": "Sports",
+        "description": "Equipment · Apparel · Nutrition"
+      },
+      "kids": {
+        "title": "Kids",
+        "description": "Toys · Clothing · Gear"
+      },
+      "pets": {
+        "title": "Pets",
+        "description": "Food · Toys · Supplies"
+      },
+      "tools": {
+        "title": "Tools",
+        "description": "Power Tools · Hand Tools · Safety"
+      },
+      "comingSoon": "Coming soon"
+    },
+    "trending": {
+      "title": "Trending across BYB",
+      "empty": "No trending products found."
+    },
+    "popular": {
+      "title": "Popular",
+      "empty": "No popular products found."
+    },
+    "deals": {
+      "title": "Best Deals",
+      "empty": "No deals found."
+    },
+    "newReleases": {
+      "title": "New Releases",
+      "empty": "No new releases found."
+    },
+    "rare": {
+      "title": "Rare / Hard to Find",
+      "empty": "No rare products found."
+    },
+    "market": {
+      "shoppingFrom": "Shopping from {{market}}?",
+      "delivery": "Delivery",
+      "localAvailability": "Local availability",
+      "currency": "Currency",
+      "customs": "Customs information"
+    }
+  },
+  "header": {
+    "nav": {
+      "discover": "Discover",
+      "deals": "Deals",
+      "guides": "Guides",
+      "categories": "Categories"
+    },
+    "market": "Market",
+    "language": "Language",
+    "selectMarket": "Select market",
+    "selectLanguage": "Select language"
+  },
+  "search": {
+    "title": "Search Results",
+    "placeholder": "Search products...",
+    "noResults": "No results found",
+    "tryAdjusting": "Try adjusting your search or filters",
+    "clearSearch": "Clear search",
+    "showingResults": "Showing <strong>{{count}}</strong> of <strong>{{total}}</strong> results for <strong>\"{{query}}\"</strong>",
+    "sortBy": "Sort by:",
+    "relevance": "Relevance",
+    "priceAsc": "Price: Low to High",
+    "priceDesc": "Price: High to Low",
+    "newest": "Newest",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{page}} of {{totalPages}}"
+  },
+  "product": {
+    "comparePrices": "Compare Prices",
+    "merchantOffers": "{{count}} merchant offers available",
+    "bestPrice": "Best Price",
+    "description": "Description",
+    "specifications": "Specifications",
+    "allOffers": "All Offers ({{count}})",
+    "bestOffer": "Best Offer",
+    "buyOn": "Buy on {{merchant}}",
+    "availability": {
+      "in_stock": "In Stock",
+      "limited": "Limited Stock",
+      "pre_order": "Pre-order",
+      "out_of_stock": "Out of Stock",
+      "unknown": "Unknown"
+    },
+    "specificationsTitle": "Specifications",
+    "descriptionTitle": "Description",
+    "allOffers": "All Offers ({{count}})",
+    "viewAllOffers": "View all {{count}} offers"
+  },
+  "footer": {
+    "tagline": "Before You Buy — Compare prices across merchants before you purchase.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "links": {
+      "search": "Search",
+      "trending": "Trending",
+      "deals": "Best Deals",
+      "categories": "Categories",
+      "newReleases": "New Releases",
+      "about": "About",
+      "blog": "Blog",
+      "careers": "Careers",
+      "press": "Press",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "cookies": "Cookies",
+      "affiliate": "Affiliate Disclosure"
+    },
+    "copyright": "© {{year}} BYB. All rights reserved. Not an online store — we help you compare before you buy."
+  },
+  "product": {
+    "comparePrices": "Compare Prices",
+    "merchantOffers": "{{count}} merchant offers available",
+    "bestPrice": "Best Price",
+    "description": "Description",
+    "specifications": "Specifications",
+    "allOffers": "All Offers ({{count}})",
+    "bestOffer": "Best Offer",
+    "buyOn": "Buy on {{merchant}}",
+    "availability": {
+      "in_stock": "In Stock",
+      "limited": "Limited Stock",
+      "pre_order": "Pre-order",
+      "out_of_stock": "Out of Stock",
+      "unknown": "Unknown"
+    },
+    "specificationsTitle": "Specifications",
+    "descriptionTitle": "Description",
+    "allOffers": "All Offers ({{count}})",
+    "viewAllOffers": "View all {{count}} offers",
+    "breadcrumb": {
+      "home": "Home",
+      "search": "Search"
+    },
+    "model": "Model: {{model}}",
+    "compare": {
+      "merchant": "Merchant",
+      "price": "Price",
+      "availability": "Availability",
+      "shipping": "Shipping",
+      "action": "Action"
+    },
+    "shipping": {
+      "free": "Free shipping"
+    }
+  },
+  "explore": {
+    "tech": {
+      "title": "Tech",
+      "description": "Phones · Computers · Audio · Gaming"
+    },
+    "auto": {
+      "title": "Auto",
+      "description": "Parts · Accessories · Compatibility"
+    },
+    "home": {
+      "title": "Home",
+      "description": "Kitchen · Appliances · Furniture"
+    },
+    "outdoors": {
+      "title": "Outdoors",
+      "description": "Fishing · Camping · Hiking"
+    },
+    "fashion": {
+      "title": "Fashion",
+      "description": "Clothing · Shoes · Accessories"
+    },
+    "beauty": {
+      "title": "Beauty",
+      "description": "Skincare · Makeup · Haircare"
+    },
+    "sports": {
+      "title": "Sports",
+      "description": "Equipment · Apparel · Nutrition"
+    },
+    "kids": {
+      "title": "Kids",
+      "description": "Toys · Clothing · Gear"
+    },
+    "pets": {
+      "title": "Pets",
+      "description": "Food · Toys · Supplies"
+    },
+    "tools": {
+      "title": "Tools",
+      "description": "Power Tools · Hand Tools · Safety"
+    },
+    "comingSoon": "Coming soon"
+  },
+  "market": {
+    "shoppingFrom": "Shopping from {{market}}?",
+    "delivery": "Delivery",
+    "localAvailability": "Local availability",
+    "currency": "Currency",
+    "customs": "Customs information"
+  },
+  "categories": {
+    "tech": "Tech",
+    "auto": "Auto",
+    "home": "Home",
+    "outdoors": "Outdoors",
+    "fashion": "Fashion",
+    "beauty": "Beauty",
+    "sports": "Sports",
+    "kids": "Kids",
+    "pets": "Pets",
+    "tools": "Tools"
+  }
+}
