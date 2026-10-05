@@ -78,7 +78,7 @@ export function ExploreSection({ markets }: ExploreSectionProps) {
       <div className="container">
         <header className="mb-10">
           <h2 id="explore-heading" className="text-3xl font-bold text-gray-900">{t('homepage.sections.explore')}</h2>
-          <p className="text-gray-600 mt-2 max-w-2xl">{t('homepage.hero.description')}</p>
+          <p className="text-gray-600 mt-2 max-w-2xl">{t('homepage.explore.subtitle')}</p>
         </header>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {categories.map((category) => (

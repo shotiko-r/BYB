@@ -40,12 +40,12 @@ export default function HomePage() {
           limit: 20,
         };
 
-        const [trending, popular, deals, newest, rare] = await Promise.all([
+const [trending, popular, deals, newest, rare] = await Promise.all([
           api.search.products({ ...baseParams, q: 'headphones', sort: 'relevance' }),
           api.search.products({ ...baseParams, q: 'smartphone', sort: 'relevance' }),
-          api.search.products({ ...baseParams, sort: 'price_asc' }),
-          api.search.products({ ...baseParams, sort: 'newest' }),
-          api.search.products({ ...baseParams, q: 'limited', sort: 'relevance' }),
+          api.search.products({ ...baseParams, q: 'sony', sort: 'relevance' }),
+          api.search.products({ ...baseParams, q: 'wireless', sort: 'relevance' }),
+          api.search.products({ ...baseParams, q: 'headphone', sort: 'relevance' }),
         ]);
 
         setTrendingProducts(trending.products);
