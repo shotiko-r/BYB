@@ -187,11 +187,7 @@ npm run typecheck
 # Build all packages
 npm run build
 
-# Database migrations
-npm run db:migrate
-
-# Seed database
-npm run db:seed
+# Empty database initialization: see production deployment below.
 ```
 
 ### Adding a New Market
@@ -219,3 +215,101 @@ Key variables:
 ## License
 
 MIT
+## Minimal production deployment (usectl)
+
+Keep this repository and its three npm workspaces together. Build two workloads
+from the **repository root**; provision PostgreSQL 16 separately on a private
+network with persistent storage. Local Compose and `Dockerfile.dev` remain for
+local development only.
+
+### Images and configuration
+
+```sh
+docker build -f frontend/Dockerfile --build-arg NEXT_PUBLIC_API_URL=https://api.example.invalid -t byb-frontend:production-check .
+docker build -f backend/Dockerfile -t byb-backend:production-check .
+```
+
+The example API hostname is a validation placeholder, not a deployment endpoint.
+Use the actual public HTTPS backend origin when building the deployed frontend.
+`NEXT_PUBLIC_API_URL` is public **build-time** configuration baked into browser
+JavaScript. Missing, non-HTTPS, localhost, or non-origin production values fail
+configuration validation. Changing the backend URL requires rebuilding frontend.
+Do not supply secrets as build arguments.
+
+| Workload | Variable | Purpose |
+| --- | --- | --- |
+| Frontend build | `NEXT_PUBLIC_API_URL` | Public HTTPS backend origin, without trailing slash/path |
+| Frontend runtime | `NODE_ENV` | `production` (image default) |
+| Frontend runtime | `PORT` | HTTP listener, default 3000 |
+| Backend runtime | `NODE_ENV` | `production` (image default) |
+| Backend runtime | `PORT` | HTTP listener, default 3001 |
+| Backend runtime | `DATABASE_URL` | Secret PostgreSQL connection URI, supplied through usectl secrets |
+| Backend runtime | `FRONTEND_URL` | Exact public HTTPS frontend origin, without trailing slash/path |
+| Backend runtime | `LOG_LEVEL` | Optional logging verbosity |
+| Self-managed PostgreSQL | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Provisioning configuration; password is secret |
+
+Image commands (no development watchers):
+- Frontend, working directory `/app/frontend`: `node ../node_modules/next/dist/bin/next start --hostname 0.0.0.0`
+- Backend, working directory `/app`: `node backend/dist/index.js`
+
+Both production images use Node 22 and run as the non-root `node` user. Configure usectl service ports to
+match `PORT`. Production CORS permits only `FRONTEND_URL`; development keeps the
+localhost convenience origin. CORS is browser policy, not API authentication.
+
+### Initialize an EMPTY PostgreSQL database, once
+
+Provision the private persistent database first. From a trusted machine with
+`psql` and this repository, supply `DATABASE_URL` through your secret environment.
+Verify the target database name privately before running anything. Check for user
+relations (including tables, views and sequences outside system schemas):
+
+```sh
+psql -X --dbname="$DATABASE_URL" --set=ON_ERROR_STOP=1 --command="SELECT count(*) AS user_relations FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname !~ '^pg_' AND n.nspname <> 'information_schema' AND c.relkind IN ('r','p','v','m','S','f');"
+```
+
+Proceed **only when this count is zero**, no other application is using the
+new database, and no other initialization is running. Then execute:
+
+```sh
+psql -X --dbname="$DATABASE_URL" --set=ON_ERROR_STOP=1 --single-transaction \
+  --command="DO \$\$ BEGIN IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname !~ '^pg_' AND n.nspname <> 'information_schema' AND c.relkind IN ('r','p','v','m','S','f')) THEN RAISE EXCEPTION 'Initialization requires an empty database'; END IF; END; \$\$;" \
+  --file=docker/init-db/01-schema.sql
+```
+
+The initialization role must be allowed to create the `uuid-ossp` extension and
+schema objects. This command rechecks emptiness within the transaction and creates
+the existing schema and reference markets/categories/merchants.
+It does not seed real merchant inventory. The SQL is **not rerunnable**: table
+creation is not idempotent. Do not use it to upgrade, reset or repair an existing
+database. A failed invocation rolls back the whole transaction. Keep connection
+URIs out of shell history/logs and use a trusted machine (command arguments may
+be visible to other privileged users). The broken migration/seed npm commands
+have been removed; no migration framework is claimed or added. Application
+startup never initializes or resets the database. Future schema changes require
+explicit reviewed migrations and backups.
+
+### Networking, health and deployment order
+
+1. Provision PostgreSQL privately with persistent storage and backups; initialize
+   the empty database once. Configure provider-required TLS through `DATABASE_URL`.
+2. Establish public HTTPS frontend/backend domains. Configure backend secrets,
+   `FRONTEND_URL`, and its internal listening port; deploy backend.
+3. Build frontend using the backend public HTTPS origin and deploy frontend.
+4. Verify browser requests, CORS, themes, search/Concierge, and product navigation.
+
+Expose frontend HTTPS publicly and backend HTTPS publicly (the browser calls
+backend directly). PostgreSQL must have **no public listener/ingress**; only backend
+and authorized administration should reach it. Frontend never connects to
+PostgreSQL. Do not use localhost as any production service destination.
+
+Backend readiness: HTTP `GET /health` on port 3001 (or configured `PORT`), success
+HTTP 200 only when PostgreSQL responds; unavailable database returns sanitized
+HTTP 503. Allow at least 10 seconds for each probe (DB connect timeout is 5 seconds).
+Frontend: HTTP `GET /` on port 3000, expect HTTP 200. Use readiness rather than
+restarting backend continually during database outages. Allow at least 30 seconds
+for container termination: SIGTERM/SIGINT await request draining then pool close.
+
+Persistent volumes/addon lifecycle must survive workload replacement. Never delete
+or recreate a populated database to redeploy BYB. Configure and verify backups and
+restore procedures before accepting important data. This MVP still uses mock
+providers; production deployment does not make those offers real merchant data.

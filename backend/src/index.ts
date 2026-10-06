@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
 // CORS is handled via onRequest hook
+import { registerHealth, createShutdown } from './lifecycle.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { pool, closePool } from './config/database.js';
@@ -18,7 +19,9 @@ const app = Fastify({ logger: false }).withTypeProvider<ZodTypeProvider>();
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
-const allowedOrigins = [env.FRONTEND_URL, 'http://localhost:3000'];
+const allowedOrigins = env.NODE_ENV === 'production'
+  ? [env.FRONTEND_URL]
+  : [env.FRONTEND_URL, 'http://localhost:3000'];
 
 app.addHook('onRequest', (request, reply, done) => {
   const origin = request.headers.origin || '';
@@ -35,24 +38,8 @@ app.addHook('onRequest', (request, reply, done) => {
   done();
 });
 
-app.get('/health', async () => {
-  try {
-    await pool.query('SELECT 1');
-    return {
-      status: 'ok' as const,
-      timestamp: new Date().toISOString(),
-      version: '0.1.0',
-      database: 'connected' as const,
-    };
-  } catch {
-    return {
-      status: 'degraded' as const,
-      timestamp: new Date().toISOString(),
-      version: '0.1.0',
-      database: 'disconnected' as const,
-    };
-  }
-});
+const healthQuery = { text: 'SELECT 1', query_timeout: 5000 };
+registerHealth(app, () => pool.query(healthQuery));
 
 void app.register(marketRoutes, { prefix: '/api' });
 void app.register(productRoutes, { prefix: '/api' });
@@ -78,12 +65,11 @@ async function start() {
   }
 }
 
-const shutdown = () => {
-  logger.info('Shutting down...');
-  void closePool();
-  void app.close();
-  process.exit(0);
-};
+const shutdown = createShutdown(
+  () => app.close(), closePool,
+  (error) => logger.error({ err: error }, 'Shutdown failed'),
+  (code) => { process.exitCode = code; },
+);
 
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);

@@ -24,7 +24,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const handleInputChange = (value: string) => {
     setQuery(value);

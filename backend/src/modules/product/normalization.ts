@@ -1,5 +1,5 @@
 import type { ProviderProduct } from '@byb/shared/types';
-import { query } from '../../config/database.js';
+import { query, getClient } from '../../config/database.js';
 
 interface CreateProductInput {
   slug: string;
@@ -185,13 +185,15 @@ export class ProductNormalizationService {
   }
 
   async persist(normalized: NormalizedProduct[]): Promise<void> {
-    await query('BEGIN').catch(() => null);
+    const client = await getClient();
+    let discard = false;
 
     try {
+      await client.query('BEGIN');
       for (const { product, offer } of normalized) {
         let productId: string;
 
-        const existing = await query<ProductRow>(
+        const existing = await client.query<ProductRow>(
           'SELECT id FROM products WHERE slug = $1 AND (category_id = $2 OR (category_id IS NULL AND $2 IS NULL))',
           [product.slug, product.categoryId || null]
         );
@@ -199,7 +201,7 @@ export class ProductNormalizationService {
         if (existing.rows[0]) {
           productId = existing.rows[0].id;
         } else {
-          const created = await query<{ id: string }>(
+          const created = await client.query<{ id: string }>(
             `INSERT INTO products (slug, name, description, brand, model, category_id, image_url, attributes)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
             [
@@ -216,7 +218,7 @@ export class ProductNormalizationService {
           productId = created.rows[0]?.id || '';
         }
 
-        await query(
+        await client.query(
           `INSERT INTO offers (product_id, merchant_id, market_id, external_product_id, price_amount, currency_code, availability, shipping_info, destination_url, affiliate_metadata, last_checked_at, is_active)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
            ON CONFLICT (product_id, merchant_id, market_id, external_product_id) DO UPDATE SET
@@ -246,10 +248,12 @@ export class ProductNormalizationService {
         );
       }
 
-      await query('COMMIT');
+      await client.query('COMMIT');
     } catch (error) {
-      await query('ROLLBACK');
+      try { await client.query('ROLLBACK'); } catch { discard = true; }
       throw error;
+    } finally {
+      client.release(discard);
     }
   }
 }

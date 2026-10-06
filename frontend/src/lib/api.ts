@@ -1,7 +1,8 @@
 import type { ConciergeRequest, ConciergeResponse } from '@byb/shared';
 import type { SearchResult, ProductWithOffers, Market, Merchant } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV !== 'production' ? 'http://localhost:3001' : '');
+if (!API_URL) throw new Error('NEXT_PUBLIC_API_URL is required in production');
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${endpoint}`, {
@@ -71,7 +72,7 @@ export const api = {
     },
   },
 
-  health: () => fetchApi<{ status: string; timestamp: string; version: string; database: string }>('/api/health'),
+  health: () => fetchApi<{ status: string; timestamp: string; version: string; database: string }>('/health'),
 };
 
 export function formatPrice(amount: number, currencyCode: string, currencySymbol: string): string {

@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { ProviderProduct } from '@byb/shared/types';
 
-const { mockQuery } = vi.hoisted(() => ({
-  mockQuery: vi.fn(),
+const { mockQuery, clientQuery, release, getClient } = vi.hoisted(() => ({
+  mockQuery: vi.fn(), clientQuery: vi.fn(), release: vi.fn(), getClient: vi.fn(),
 }));
 
 vi.mock('../src/config/database.js', () => ({
   query: mockQuery,
-  getClient: vi.fn(),
+  getClient,
 }));
 
 import { ProductNormalizationService } from '../src/modules/product/normalization.js';
@@ -17,6 +17,7 @@ describe('ProductNormalizationService', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    getClient.mockResolvedValue({ query: clientQuery, release });
     service = new ProductNormalizationService();
   });
 
@@ -95,5 +96,43 @@ describe('ProductNormalizationService', () => {
     const result = await service.normalize(products, 'market-1');
 
     expect(result[0].product.slug).toContain('generic-headphones');
+  });
+});
+
+describe('normalization transactions', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    getClient.mockResolvedValue({ query: clientQuery, release });
+  });
+  const normalized = [{ product: { slug: 'mock', name: 'Mock' }, offer: {
+    merchantId: 'merchant', marketId: 'market', externalProductId: 'mock',
+    priceAmount: 100, currencyCode: 'GEL', availability: 'in_stock' as const,
+    shippingInfo: {}, destinationUrl: 'https://example.invalid', affiliateMetadata: {},
+    lastCheckedAt: new Date().toISOString(), isActive: true,
+  } }];
+  it('uses one checked-out client for BEGIN, reads, writes and COMMIT', async () => {
+    clientQuery.mockResolvedValue({ rows: [{ id: 'product' }] });
+    await new ProductNormalizationService().persist(normalized);
+    expect(getClient).toHaveBeenCalledTimes(1);
+    expect(mockQuery).not.toHaveBeenCalled();
+    expect(clientQuery.mock.calls.map(call => call[0])).toEqual([
+      'BEGIN', expect.stringContaining('SELECT id'), expect.stringContaining('INSERT INTO offers'), 'COMMIT',
+    ]);
+    expect(release).toHaveBeenCalledWith(false);
+  });
+  it('rolls back failed writes and releases the client', async () => {
+    const error = new Error('write failed');
+    clientQuery.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({ rows: [{ id: 'product' }] })
+      .mockRejectedValueOnce(error).mockResolvedValueOnce({ rows: [] });
+    await expect(new ProductNormalizationService().persist(normalized)).rejects.toBe(error);
+    expect(clientQuery).toHaveBeenLastCalledWith('ROLLBACK');
+    expect(release).toHaveBeenCalledWith(false);
+  });
+  it('does not continue after failed BEGIN and discards a client if rollback fails', async () => {
+    const error = new Error('connection failed');
+    clientQuery.mockRejectedValue(error);
+    await expect(new ProductNormalizationService().persist(normalized)).rejects.toBe(error);
+    expect(clientQuery.mock.calls.map(call => call[0])).toEqual(['BEGIN', 'ROLLBACK']);
+    expect(release).toHaveBeenCalledWith(true);
   });
 });

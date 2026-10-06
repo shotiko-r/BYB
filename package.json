@@ -14,9 +14,7 @@
     "build": "npm run build --workspaces",
     "lint": "npm run lint --workspaces",
     "typecheck": "npm run typecheck --workspaces",
-    "test": "npm run test --workspaces",
-    "db:migrate": "npm run db:migrate --workspace=backend",
-    "db:seed": "npm run db:seed --workspace=backend"
+    "test": "npm run test --workspaces"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

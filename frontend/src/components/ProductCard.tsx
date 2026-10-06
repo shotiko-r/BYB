@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import type { SyntheticEvent } from 'react';
 import { formatPrice } from '@/lib/api';
 import { useI18n } from '@/i18n/I18nContext';
 import type { ProductWithOffers, Market } from '@/types';
@@ -78,7 +79,7 @@ export function ProductCard({ product, market, onClick }: ProductCardProps) {
               width={32}
               height={32}
               className="object-contain rounded bg-gray-50 p-1 flex-shrink-0"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              onError={(e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }}
             />
           )}
         </div>

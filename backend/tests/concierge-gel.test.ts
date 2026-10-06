@@ -3,7 +3,7 @@ import Fastify from 'fastify';
 import { ConciergeResponseSchema } from '@byb/shared/types';
 const { db, logError } = vi.hoisted(() => ({ db: vi.fn(), logError: vi.fn() }));
 vi.mock('../src/config/logger.js', () => ({ logger: { error: logError } }));
-vi.mock('../src/config/database.js', () => ({ query: db }));
+vi.mock('../src/config/database.js', () => ({ query: db, getClient: async () => ({ query: db, release: vi.fn() }) }));
 import { ConciergeService } from '../src/modules/ai/concierge.js';
 import { conciergeRoutes } from '../src/modules/ai/routes.js';
 import { MockSearchIntentParser } from '../src/modules/ai/mock-parser.js';

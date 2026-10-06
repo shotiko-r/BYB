@@ -43,3 +43,11 @@ coverage
 # Misc
 *.pem
 .cache
+# Nested generated files and secrets
+**/node_modules
+**/.next
+**/dist
+**/coverage
+**/.nyc_output
+**/.env*
+!**/.env.example
