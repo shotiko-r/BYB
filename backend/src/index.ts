@@ -8,6 +8,7 @@ import { pool, closePool } from './config/database.js';
 import { marketRoutes } from './modules/market/routes.js';
 import { productRoutes } from './modules/product/routes.js';
 import { merchantRoutes } from './modules/merchant/routes.js';
+import { conciergeRoutes } from './modules/ai/routes.js';
 import { searchRoutes } from './modules/search/routes.js';
 import { providerRegistry } from './modules/provider/registry.js';
 import { AmazonProvider, TemuProvider, AliExpressProvider, EbayProvider } from './modules/provider/mock/index.js';
@@ -57,6 +58,7 @@ void app.register(marketRoutes, { prefix: '/api' });
 void app.register(productRoutes, { prefix: '/api' });
 void app.register(merchantRoutes, { prefix: '/api' });
 void app.register(searchRoutes, { prefix: '/api' });
+void app.register(conciergeRoutes, { prefix: '/api' });
 
 function registerMockProviders() {
   providerRegistry.register(new AmazonProvider());

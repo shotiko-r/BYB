@@ -80,6 +80,7 @@ export class MockSearchIntentParser implements SearchIntentParser {
 
     return {
       query: query.trim(),
+      currencyCode: query.includes('$') ? 'USD' : undefined,
       category,
       brand,
       maxPrice: prices.maxPrice,

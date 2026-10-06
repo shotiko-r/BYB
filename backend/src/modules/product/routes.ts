@@ -22,7 +22,7 @@ export async function productRoutes(app: FastifyInstance) {
       });
     }
 
-    const { q, market, category, minPrice, maxPrice, brand, page, limit, sort } = parsed.data;
+    const { q, market, category, minPrice, maxPrice, brand, currencyCode, page, limit, sort } = parsed.data;
 
     let marketCode = market || 'GE';
     try {
@@ -38,6 +38,7 @@ export async function productRoutes(app: FastifyInstance) {
       query: q,
       categoryId: category,
       brand,
+      currencyCode: currencyCode ?? ((minPrice !== undefined || maxPrice !== undefined || sort.startsWith('price_')) ? marketEntity.currencyCode : undefined),
       minPrice,
       maxPrice,
       page,
@@ -53,7 +54,7 @@ export async function productRoutes(app: FastifyInstance) {
       page: result.page,
       limit: result.limit,
       totalPages: result.totalPages,
-      query: parsed.data,
+      query: { ...parsed.data, market: marketCode, currencyCode: filters.currencyCode },
     };
   });
 

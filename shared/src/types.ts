@@ -79,6 +79,8 @@ export const OfferSchema = z.object({
 export type Offer = z.infer<typeof OfferSchema>;
 
 export const SearchIntentSchema = z.object({
+  // Budgets are integer minor units in this currency; no FX conversion.
+  currencyCode: z.string().regex(/^[A-Z]{3}$/).optional(),
   category: z.string().optional(),
   maxPrice: z.number().positive().optional(),
   minPrice: z.number().nonnegative().optional(),
@@ -90,6 +92,7 @@ export const SearchIntentSchema = z.object({
 export type SearchIntent = z.infer<typeof SearchIntentSchema>;
 
 export const SearchQuerySchema = z.object({
+  currencyCode: z.string().regex(/^[A-Z]{3}$/).optional(),
   q: z.string().min(1).max(500),
   market: z.string().length(2).optional(),
   category: z.string().optional(),
@@ -175,3 +178,55 @@ export type MerchantListResponse = z.infer<typeof MerchantListResponseSchema>;
 
 export const CategoryListResponseSchema = z.array(CategorySchema);
 export type CategoryListResponse = z.infer<typeof CategoryListResponseSchema>;
+// Concierge budgets use integer minor units, with no currency conversion.
+const ConciergeTextSchema = z.string().trim().min(1).max(100);
+export const ConciergeBudgetSchema = z.union([
+  z.object({
+    minPrice: z.number().int().nonnegative().optional(),
+    maxPrice: z.number().int().positive().optional(),
+    currencyCode: z.string().regex(/^[A-Z]{3}$/),
+  }).strict().refine(b => b.minPrice !== undefined || b.maxPrice !== undefined, 'Specify a budget bound')
+    .refine(b => b.minPrice === undefined || b.maxPrice === undefined || b.minPrice <= b.maxPrice, 'Invalid budget range'),
+  z.object({ unlimited: z.literal(true) }).strict(),
+]);
+export const ConciergeAnswersSchema = z.object({
+  category: ConciergeTextSchema.optional(),
+  useCase: ConciergeTextSchema.optional(),
+  budget: ConciergeBudgetSchema.optional(),
+  currencyCode: z.string().regex(/^[A-Z]{3}$/).optional(),
+  // An empty list explicitly means no feature preference.
+  features: z.array(z.string().trim().min(1).max(60)).max(20).optional(),
+  brand: ConciergeTextSchema.optional(),
+}).strict();
+export const ConciergeRequestSchema = z.object({
+  query: z.string().trim().min(1).max(500),
+  market: z.string().regex(/^[A-Za-z]{2}$/).transform(s => s.toUpperCase()).default('GE'),
+  answers: ConciergeAnswersSchema.optional(),
+}).strict();
+export type ConciergeRequest = z.infer<typeof ConciergeRequestSchema>;
+export const ConciergeIntentSchema = SearchIntentSchema.extend({
+  minPrice: z.number().int().nonnegative().optional(),
+  maxPrice: z.number().int().positive().optional(),
+  filters: z.object({
+    useCase: ConciergeTextSchema.optional(),
+    features: z.array(z.string().trim().min(1).max(60)).max(20).optional(),
+    budgetUnrestricted: z.boolean().optional(),
+  }).passthrough().optional(),
+}).refine(i => i.minPrice === undefined || i.maxPrice === undefined || i.minPrice <= i.maxPrice, 'Invalid budget range');
+export const ConciergeQuestionSchema = z.object({
+  id: z.enum(['category', 'useCase', 'budget', 'currencyCode', 'features']),
+  prompt: z.string(),
+  options: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+});
+export type ConciergeQuestion = z.infer<typeof ConciergeQuestionSchema>;
+export const ConciergeRecommendationSchema = z.object({
+  matchScore: z.number().int().min(0).max(100),
+  reasons: z.array(z.string()),
+  product: ProductWithOffersSchema,
+});
+export type ConciergeRecommendation = z.infer<typeof ConciergeRecommendationSchema>;
+export const ConciergeResponseSchema = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('needs_clarification'), questions: z.array(ConciergeQuestionSchema).min(1).max(4) }),
+  z.object({ status: z.literal('recommendations'), intent: ConciergeIntentSchema, recommendations: z.array(ConciergeRecommendationSchema) }),
+]);
+export type ConciergeResponse = z.infer<typeof ConciergeResponseSchema>;

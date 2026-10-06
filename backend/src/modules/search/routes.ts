@@ -25,7 +25,7 @@ export async function searchRoutes(app: FastifyInstance) {
       });
     }
 
-    const { q, market, category, minPrice, maxPrice, brand, page, limit, sort } = parsed.data;
+    const { q, market, category, minPrice, maxPrice, brand, currencyCode, page, limit, sort } = parsed.data;
 
     let marketCode = market || 'GE';
     try {
@@ -37,6 +37,7 @@ export async function searchRoutes(app: FastifyInstance) {
     const result = await searchService.search(q, marketCode, {
       category,
       brand,
+      currencyCode,
       minPrice,
       maxPrice,
       page,

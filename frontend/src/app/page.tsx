@@ -1,17 +1,14 @@
 'use client';
 
+import { useI18n } from '@/i18n/I18nContext';
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { SearchInput } from '@/components/SearchInput';
-import { ProductSection } from '@/components/ProductSection';
-import { ProductCard } from '@/components/ProductCard';
 import { Hero } from '@/components/Hero';
 import { ExploreSection } from '@/components/ExploreSection';
 import { DiscoverySections } from '@/components/DiscoverySections';
 import { MarketSection } from '@/components/MarketSection';
-import { MarketAware } from '@/components/MarketAware';
-import { api, formatPrice } from '@/lib/api';
+import { api } from '@/lib/api';
 import type { Market, ProductWithOffers } from '@/types';
 
 const MOCK_MARKETS: Market[] = [
@@ -21,6 +18,7 @@ const MOCK_MARKETS: Market[] = [
 ];
 
 export default function HomePage() {
+  const { t } = useI18n();
   const [markets] = useState<Market[]>(MOCK_MARKETS);
   const [selectedMarket, setSelectedMarket] = useState<Market>(MOCK_MARKETS[0]);
   const [trendingProducts, setTrendingProducts] = useState<ProductWithOffers[]>([]);
@@ -40,7 +38,7 @@ export default function HomePage() {
           limit: 20,
         };
 
-const [trending, popular, deals, newest, rare] = await Promise.all([
+        const [trending, popular, deals, newest, rare] = await Promise.all([
           api.search.products({ ...baseParams, q: 'headphones', sort: 'relevance' }),
           api.search.products({ ...baseParams, q: 'smartphone', sort: 'relevance' }),
           api.search.products({ ...baseParams, q: 'sony', sort: 'relevance' }),
@@ -77,55 +75,28 @@ const [trending, popular, deals, newest, rare] = await Promise.all([
     setSelectedMarket(market);
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Header markets={markets} selectedMarket={selectedMarket} onMarketChange={handleMarketChange} />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4" />
-            <p className="text-gray-600">Loading BYB...</p>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="byb-home flex flex-col min-h-screen">
       <Header markets={markets} selectedMarket={selectedMarket} onMarketChange={handleMarketChange} />
       <main className="flex-1">
-        <MarketAware>
-          {(market) => (
-            <>
-              <Hero market={market} onSearch={handleSearch} />
-              
-              {error && (
-                <div className="container py-4">
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800 text-sm" role="alert">
-                    {error}
-                  </div>
-                </div>
-              )}
-
-              <ExploreSection markets={MOCK_MARKETS} />
-              
-              <DiscoverySections
-                trendingProducts={trendingProducts}
-                popularProducts={popularProducts}
-                dealsProducts={dealsProducts}
-                newProducts={newProducts}
-                rareProducts={rareProducts}
-                market={market}
-                onProductClick={handleProductClick}
-                loading={loading}
-              />
-
-              <MarketSection market={market} />
-            </>
-          )}
-        </MarketAware>
+        <Hero market={selectedMarket} onSearch={handleSearch} />
+        {error && (
+          <div className="byb-container py-4">
+            <div className="homepage-error" role="alert">{t('common.failedToLoad')}</div>
+          </div>
+        )}
+        <ExploreSection />
+        <DiscoverySections
+          trendingProducts={trendingProducts}
+          popularProducts={popularProducts}
+          dealsProducts={dealsProducts}
+          newProducts={newProducts}
+          rareProducts={rareProducts}
+          market={selectedMarket}
+          onProductClick={handleProductClick}
+          loading={loading}
+        />
+        <MarketSection market={selectedMarket} />
       </main>
       <Footer />
     </div>

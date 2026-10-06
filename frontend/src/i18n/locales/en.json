@@ -1,4 +1,29 @@
 {
+  "concierge": {
+    "title": "BYB Assistant",
+    "clarify": "A little more information will help BYB find your match.",
+    "continue": "Continue search",
+    "edit": "Edit search",
+    "restart": "Start over",
+    "loading": "Finding your match…",
+    "empty": "No recommendations yet. Try adjusting your request or preferences.",
+    "error": "BYB could not complete your request. Please try again.",
+    "retry": "Try again",
+    "pick": "BYB Pick",
+    "match": "{{score}}% match",
+    "select": "Choose an option",
+    "none": "No preference",
+    "budget": "Maximum budget",
+    "currency": "Currency",
+    "unlimited": "No budget limit",
+    "budgetHelp": "Enter the amount in this currency (for example, 150.00).",
+    "view": "View product & offers",
+    "request": "Your request: {{query}}",
+    "priceUnavailable": "Price unavailable",
+    "priceLabel": "Available price · {{currency}}",
+    "invalid": "Please complete the requested answers and enter a valid budget and currency.",
+    "custom": "Your answer"
+},
   "common": {
     "search": "Search",
     "discover": "Discover",
@@ -156,6 +181,7 @@
     }
   },
   "header": {
+    "theme": {"label": "Theme", "system": "System", "light": "Light", "dark": "Dark"},
     "nav": {
       "discover": "Discover",
       "deals": "Deals",

@@ -15,6 +15,9 @@ export interface ProductSearchFilters {
   marketId: string;
   query?: string;
   categoryId?: string;
+  categorySlug?: string;
+  features?: string[];
+  currencyCode?: string;
   brand?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -132,6 +135,13 @@ function mapOfferRow(row: OfferRow): Offer {
 }
 
 export class PostgresProductRepository implements ProductRepository {
+  async resolveCategory(identity: string): Promise<{ id: string; slug: string } | undefined> {
+    const result = await query<{ id: string; slug: string }>(
+      'SELECT id, slug FROM categories WHERE (id::text = $1 OR slug = $1) AND is_active = true', [identity]
+    );
+    return result.rows[0];
+  }
+
   async findById(id: string): Promise<Product | null> {
     const result = await query<ProductRow>('SELECT * FROM products WHERE id = $1 AND is_active = true', [id]);
     return result.rows[0] ? mapProductRow(result.rows[0]) : null;
@@ -165,7 +175,7 @@ export class PostgresProductRepository implements ProductRepository {
        FROM offers o
        JOIN merchants m ON o.merchant_id = m.id
        WHERE o.product_id = $1 AND o.market_id = $2 AND o.is_active = true AND m.is_active = true
-       ORDER BY o.price_amount ASC`,
+       ORDER BY o.currency_code ASC, o.price_amount ASC, o.id ASC`,
       [id, marketId]
     );
 
@@ -180,7 +190,10 @@ export class PostgresProductRepository implements ProductRepository {
   }
 
   async search(filters: ProductSearchFilters): Promise<{ products: ProductWithOffers[]; total: number }> {
-    const { marketId, query: searchQuery, categoryId, brand, minPrice, maxPrice, page, limit, sort } = filters;
+    const { marketId, query: searchQuery, categoryId, categorySlug, features, currencyCode, brand, minPrice, maxPrice, page, limit, sort } = filters;
+    if (!currencyCode && (minPrice !== undefined || maxPrice !== undefined || sort.startsWith('price_'))) {
+      throw new Error('A currency is required for budget filtering and price sorting');
+    }
     const offset = (page - 1) * limit;
 
     let whereClause = 'WHERE p.is_active = true AND o.is_active = true AND m.is_active = true AND o.market_id = $1';
@@ -194,8 +207,29 @@ export class PostgresProductRepository implements ProductRepository {
     }
 
     if (categoryId) {
-      whereClause += ` AND p.category_id = $${paramIndex}`;
+      whereClause += ` AND (p.category_id::text = $${paramIndex} OR c.slug = $${paramIndex})`;
       params.push(categoryId);
+      paramIndex++;
+    }
+
+    if (categorySlug) {
+      whereClause += ` AND c.slug = $${paramIndex}`;
+      params.push(categorySlug);
+      paramIndex++;
+    }
+
+    if (currencyCode) {
+      whereClause += ` AND o.currency_code = $${paramIndex}`;
+      params.push(currencyCode);
+      paramIndex++;
+    }
+
+    for (const feature of features || []) {
+      // Supported evidence: boolean attributes, a feature list, and Bluetooth connectivity.
+      whereClause += ` AND (p.attributes ->> $${paramIndex} = 'true'
+        OR (jsonb_typeof(p.attributes -> 'features') = 'array' AND (p.attributes -> 'features') ? $${paramIndex})
+        OR ($${paramIndex} = 'wireless' AND p.attributes ->> 'connectivity' ILIKE '%bluetooth%'))`;
+      params.push(feature);
       paramIndex++;
     }
 
@@ -217,19 +251,19 @@ export class PostgresProductRepository implements ProductRepository {
       paramIndex++;
     }
 
-    let orderBy = 'ORDER BY p.id';
+    // One row per product; price means its cheapest qualifying offer in the selected currency.
+    let orderBy = 'ORDER BY p.name ASC, p.id ASC';
     switch (sort) {
       case 'price_asc':
-        orderBy += ', o.price_amount ASC';
+        orderBy = 'ORDER BY MIN(o.price_amount) ASC, p.name ASC, p.id ASC';
         break;
       case 'price_desc':
-        orderBy += ', o.price_amount DESC';
+        orderBy = 'ORDER BY MIN(o.price_amount) DESC, p.name ASC, p.id ASC';
         break;
       case 'newest':
-        orderBy += ', p.created_at DESC';
+        orderBy = 'ORDER BY p.created_at DESC, p.id ASC';
         break;
-      default:
-        orderBy += ', p.name ASC';
+      // Relevance remains a deterministic alphabetical fallback, not recommendation ranking.
     }
 
     const countSql = `
@@ -237,6 +271,7 @@ export class PostgresProductRepository implements ProductRepository {
       FROM products p
       JOIN offers o ON p.id = o.product_id
       JOIN merchants m ON o.merchant_id = m.id
+      LEFT JOIN categories c ON p.category_id = c.id
       ${whereClause}
     `;
 
@@ -244,7 +279,7 @@ export class PostgresProductRepository implements ProductRepository {
     const total = parseInt(countResult.rows[0]?.total || '0', 10);
 
     const selectSql = `
-      SELECT DISTINCT ON (p.id) p.*, 
+      SELECT p.*,
         json_agg(
           json_build_object(
             'id', o.id,
@@ -265,7 +300,7 @@ export class PostgresProductRepository implements ProductRepository {
             'merchant_code', m.code,
             'merchant_name', m.name,
             'merchant_logo_url', m.logo_url
-          )
+          ) ORDER BY o.currency_code ASC, o.price_amount ASC, o.id ASC
         ) FILTER (WHERE o.id IS NOT NULL) as offers,
         c.id as category_id, c.slug as category_slug, c.name as category_name,
         c.description as category_description, c.parent_id as category_parent_id,
@@ -291,7 +326,7 @@ export class PostgresProductRepository implements ProductRepository {
         ...productFields 
       } = row;
       
-      const product = mapProductRow(productFields as unknown as ProductRow);
+      const product = mapProductRow({ ...productFields, category_id } as unknown as ProductRow);
       const category = category_id ? {
         id: category_id as string,
         slug: category_slug as string,

@@ -156,6 +156,7 @@
     }
   },
   "header": {
+    "theme": {"label": "თემა", "system": "სისტემა", "light": "ღია", "dark": "მუქი"},
     "nav": {
       "discover": "აღმოკრება",
       "deals": "შეთავაზებები",

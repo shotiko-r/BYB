@@ -71,7 +71,9 @@ export function I18nProvider({ children, defaultLocale = 'en' }: I18nProviderPro
       if (value && typeof value === 'object' && k in value) {
         value = value[k];
       } else {
-        return key;
+        if (!key.startsWith('concierge.')) return key;
+        value = keys.reduce((entry: any, part) => entry?.[part], enTranslations);
+        break;
       }
     }
 

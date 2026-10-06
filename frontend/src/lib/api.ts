@@ -1,3 +1,4 @@
+import type { ConciergeRequest, ConciergeResponse } from '@byb/shared';
 import type { SearchResult, ProductWithOffers, Market, Merchant } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -38,6 +39,11 @@ export const availabilityLabels = {
 } as const;
 
 export const api = {
+  concierge: {
+    request: (body: ConciergeRequest, signal?: AbortSignal) => fetchApi<ConciergeResponse>('/api/concierge', {
+      method: 'POST', body: JSON.stringify(body), signal,
+    }),
+  },
   markets: {
     list: () => fetchApi<Market[]>('/api/markets'),
     get: (code: string) => fetchApi<Market>(`/api/markets/${code}`),

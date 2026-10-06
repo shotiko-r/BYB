@@ -1,19 +1,17 @@
 import Link from 'next/link';
+import { Logo } from './Logo';
 import { useI18n } from '@/i18n/I18nContext';
 
 export function Footer() {
   const { t } = useI18n();
 
   return (
-    <footer className="border-t border-gray-200 bg-gray-50 mt-auto">
-      <div className="container py-12">
+    <footer className="byb-footer mt-auto">
+      <div className="byb-container py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2" aria-label="BYB Home">
-              <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-              <span className="text-xl font-bold text-gray-900">BYB</span>
+              <Logo />
             </Link>
             <p className="mt-4 text-sm text-gray-600 max-w-xs">
               {t('footer.tagline')}

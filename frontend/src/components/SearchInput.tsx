@@ -10,11 +10,17 @@ interface SearchInputProps {
   onSearch: (query: string) => void;
   placeholder?: string;
   showModes?: boolean;
+  homepage?: boolean;
+  queryValue?: string;
+  onQueryChange?: (query: string) => void;
+  busy?: boolean;
 }
 
-export function SearchInput({ market, onSearch, placeholder, showModes = true }: SearchInputProps) {
+export function SearchInput({ market, onSearch, placeholder, showModes = true, homepage = false, queryValue, onQueryChange, busy = false }: SearchInputProps) {
   const { t, tArray } = useI18n();
-  const [query, setQuery] = useState('');
+  const [localQuery, setLocalQuery] = useState('');
+  const query = queryValue ?? localQuery;
+  const setQuery = (value: string) => { setLocalQuery(value); onQueryChange?.(value); };
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,14 +47,14 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true }:
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
+    if (query.trim() && !busy) {
       onSearch(query.trim());
       setShowSuggestions(false);
     }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && query.trim()) {
+    if (e.key === 'Enter' && query.trim() && !busy) {
       e.preventDefault();
       onSearch(query.trim());
       setShowSuggestions(false);
@@ -67,9 +73,9 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true }:
   const examples = tArray('homepage.hero.examples.items');
 
   return (
-    <form onSubmit={handleSubmit} className="relative w-full max-w-3xl">
+    <form onSubmit={handleSubmit} className={`relative w-full max-w-3xl ${homepage ? "home-request" : ""}`}>
       <label htmlFor="search" className="sr-only">{t('common.search')}</label>
-      <div className="relative">
+      <div className="relative request-field">
         <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
@@ -77,6 +83,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true }:
           ref={inputRef}
           id="search"
           type="search"
+          disabled={busy}
           value={query}
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -89,6 +96,11 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true }:
           aria-controls="suggestions"
           aria-expanded={showSuggestions && suggestions.length > 0}
         />
+        {homepage && (
+          <button type="submit" className="request-submit" disabled={busy} aria-busy={busy}>
+            {t(busy ? 'common.searching' : 'homepage.hero.cta')}<span aria-hidden="true">↗</span>
+          </button>
+        )}
       </div>
 
       {showModes && (
@@ -114,17 +126,18 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true }:
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2 mt-3">
+      <div className="flex flex-wrap gap-2 mt-3 request-examples">
         {examples.map((item, index) => (
           <button
             key={index}
             type="button"
+            disabled={busy}
             onClick={() => {
               setQuery(item);
               onSearch(item);
               setShowSuggestions(false);
             }}
-            className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200 rounded-full transition-colors whitespace-nowrap"
+            className={`px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200 rounded-full transition-colors ${homepage ? "" : "whitespace-nowrap"}`}
           >
             {item}
           </button>
@@ -137,6 +150,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true }:
             <li key={index} role="option" aria-selected={false}>
               <button
                 type="button"
+                disabled={busy}
                 onClick={() => {
                   setQuery(suggestion);
                   onSearch(suggestion);

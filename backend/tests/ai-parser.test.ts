@@ -64,6 +64,11 @@ describe('MockSearchIntentParser', () => {
     }
   });
 
+  it('preserves explicit dollar currency without assuming currency for bare amounts', async () => {
+    expect((await parser.parse('headphones under $100', 'GE')).currencyCode).toBe('USD');
+    expect((await parser.parse('headphones under 100', 'GE')).currencyCode).toBeUndefined();
+  });
+
   it('extracts min price from "over" queries', async () => {
     const intent = await parser.parse('headphones over $50', 'GE');
     expect(intent.minPrice).toBe(5000);

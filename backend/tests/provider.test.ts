@@ -44,13 +44,20 @@ describe.each(providers)('%s', (provider) => {
   });
 
   it('filters by max price', async () => {
-    const result = await provider.search({ maxPrice: 30000 }, 'GE');
+    const result = await provider.search({ maxPrice: 30000, currencyCode: 'USD' }, 'GE');
     expect(result.products.every((p) => p.priceAmount <= 30000)).toBe(true);
   });
 
   it('filters by min price', async () => {
-    const result = await provider.search({ minPrice: 50000 }, 'GE');
+    const result = await provider.search({ minPrice: 50000, currencyCode: 'USD' }, 'GE');
     expect(result.products.every((p) => p.priceAmount >= 50000)).toBe(true);
+  });
+
+  it('does not compare a budget against another currency or an unspecified currency', async () => {
+    const gel = await provider.search({ maxPrice: 1000000, currencyCode: 'GEL' }, 'GE');
+    expect(gel.products.every(p => p.currencyCode === 'GEL')).toBe(true);
+    if (provider.code === 'amazon') expect(gel.products).toHaveLength(3);
+    expect((await provider.search({ maxPrice: 1000000 }, 'GE')).products).toEqual([]);
   });
 
   it('returns empty for non-matching query', async () => {

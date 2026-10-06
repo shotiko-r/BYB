@@ -30,12 +30,12 @@ export class TemuProvider implements ProductProvider {
       filtered = filtered.filter((p) => p.brand?.toLowerCase() === intent.brand?.toLowerCase());
     }
 
-    if (intent.maxPrice) {
-      filtered = filtered.filter((p) => p.priceAmount <= intent.maxPrice!);
+    if (intent.maxPrice !== undefined) {
+      filtered = filtered.filter((p) => p.currencyCode === intent.currencyCode && p.priceAmount <= intent.maxPrice!);
     }
 
-    if (intent.minPrice) {
-      filtered = filtered.filter((p) => p.priceAmount >= intent.minPrice!);
+    if (intent.minPrice !== undefined) {
+      filtered = filtered.filter((p) => p.currencyCode === intent.currencyCode && p.priceAmount >= intent.minPrice!);
     }
 
     return {
