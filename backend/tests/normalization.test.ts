@@ -136,3 +136,59 @@ describe('normalization transactions', () => {
     expect(release).toHaveBeenCalledWith(true);
   });
 });
+
+
+describe('real eBay listing identity', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    getClient.mockResolvedValue({ query: clientQuery, release });
+    mockQuery.mockResolvedValue({ rows: [] });
+  });
+  const listing = (id: string): ProviderProduct => ({
+    externalId: id, name: 'Sony WH-1000XM5', brand: 'Sony', model: 'WH-1000XM5',
+    priceAmount: 15999, currencyCode: 'USD', destinationUrl: 'https://www.ebay.com/itm/123',
+    imageUrl: 'https://i.ebayimg.com/new.jpg',
+    attributes: { source: 'ebay_browse', listingIdentity: id, condition: 'Used' },
+  });
+  it('keeps identical-title listings and mock products separate with stable identities', async () => {
+    mockQuery.mockResolvedValue({ rows: [{ id: 'mock', slug: 'mock-sony', name: 'Sony WH-1000XM5',
+      brand: 'Sony', model: 'WH-1000XM5', attributes: { noiseCancellation: true } }] });
+    const service = new ProductNormalizationService();
+    const result = await service.normalize([{ merchantId: 'ebay', products: [listing('v1|1|0'), listing('v1|2|0')] }], 'GE');
+    expect(result[0]!.product.slug).toMatch(/^ebay-[a-f0-9]{64}$/);
+    expect(result[0]!.product.slug).not.toBe(result[1]!.product.slug);
+    expect(result[0]!.product.attributes).not.toHaveProperty('noiseCancellation');
+    expect(result.map(r => r.offer.externalProductId)).toEqual(['v1|1|0', 'v1|2|0']);
+    const repeated = await service.normalize([{ merchantId: 'ebay', products: [listing('v1|1|0')] }], 'GE');
+    expect(repeated[0]!.product.slug).toBe(result[0]!.product.slug);
+  });
+  it('adds verified brand/category to an existing listing without creating another identity', async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [{ id: 'real', slug: 'stable', name: 'Old title',
+      category_id: null, brand: null, model: null,
+      attributes: { source: 'ebay_browse', listingIdentity: 'v1|1|0' } }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'headphones-category' }] });
+    const service = new ProductNormalizationService();
+    const normalized = await service.normalize([{ merchantId: 'ebay', products: [{ ...listing('v1|1|0'), category: 'headphones' }] }], 'GE');
+    expect(normalized[0]!.product).toMatchObject({ slug: 'stable', name: 'Sony WH-1000XM5', brand: 'Sony', model: 'WH-1000XM5', categoryId: 'headphones-category' });
+    clientQuery.mockResolvedValue({ rows: [{ id: 'real' }] });
+    await service.persist(normalized);
+    expect(clientQuery).toHaveBeenCalledWith('SELECT id FROM products WHERE slug = $1', ['stable']);
+    expect(clientQuery).toHaveBeenCalledWith(expect.stringContaining('UPDATE products'), expect.arrayContaining(['headphones-category', 'Sony', 'real']));
+    expect(clientQuery.mock.calls.some(([sql]) => String(sql).includes('INSERT INTO products'))).toBe(false);
+  });
+  it('refreshes only a matching real listing and preserves the offer conflict key', async () => {
+    mockQuery.mockResolvedValue({ rows: [{ id: 'real', slug: 'stable', name: 'Sony WH-1000XM5',
+      image_url: 'https://i.ebayimg.com/old.jpg', attributes: { source: 'ebay_browse', listingIdentity: 'v1|1|0', condition: 'New' } }] });
+    const service = new ProductNormalizationService();
+    const normalized = await service.normalize([{ merchantId: 'ebay', products: [listing('v1|1|0')] }], 'GE');
+    expect(normalized[0]!.product.slug).toBe('stable');
+    expect(normalized[0]!.product.attributes!.condition).toBe('Used');
+    expect(normalized[0]!.product.imageUrl).toBe('https://i.ebayimg.com/new.jpg');
+    expect(normalized[0]!.offer.lastCheckedAt).toMatch(/^\d{4}-/);
+    clientQuery.mockResolvedValue({ rows: [{ id: 'real' }] });
+    await service.persist(normalized);
+    expect(clientQuery).toHaveBeenCalledWith(expect.stringContaining('UPDATE products'), expect.arrayContaining(['real']));
+    expect(clientQuery).toHaveBeenCalledWith(expect.stringContaining('ON CONFLICT (product_id, merchant_id, market_id, external_product_id)'), expect.arrayContaining(['real', 'ebay', 'GE', 'v1|1|0']));
+    expect(clientQuery).toHaveBeenLastCalledWith('COMMIT');
+  });
+});

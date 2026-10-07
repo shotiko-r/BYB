@@ -7,7 +7,14 @@ export const EnvSchema = z.object({
   DATABASE_URL: z.string().url().regex(/^postgres(?:ql)?:\/\//, 'DATABASE_URL must use postgres:// or postgresql://'),
   FRONTEND_URL: z.string().url().optional(),
   EBAY_MARKETPLACE_DELETION_VERIFICATION_TOKEN: z.preprocess(value => value === '' ? undefined : value, VerificationTokenSchema.optional()),
+  EBAY_PROVIDER_MODE: z.enum(['mock', 'real']).default('mock'),
+  EBAY_ENVIRONMENT: z.enum(['sandbox', 'production']).default('production'),
+  EBAY_CLIENT_ID: z.string().optional(),
+  EBAY_CLIENT_SECRET: z.string().optional(),
 }).superRefine((value, context) => {
+  if (value.EBAY_PROVIDER_MODE === 'real' && (!value.EBAY_CLIENT_ID?.trim() || !value.EBAY_CLIENT_SECRET?.trim())) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['EBAY_PROVIDER_MODE'], message: 'Real eBay mode requires backend client credentials' });
+  }
   if (value.NODE_ENV !== 'production') return;
   let url: URL | undefined;
   try { url = value.FRONTEND_URL ? new URL(value.FRONTEND_URL) : undefined; } catch { /* Invalid URL is reported below. */ }

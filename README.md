@@ -357,3 +357,71 @@ Production keyset status. Portal acceptance is not established by local tests.
 
 Official specification:
 https://developer.ebay.com/develop/guides/sell/marketplace-user-account-deletion
+
+## eBay Browse discovery
+
+`EBAY_PROVIDER_MODE=mock` (default) preserves deterministic fixtures. Set
+`EBAY_PROVIDER_MODE=real`, `EBAY_ENVIRONMENT=production` and backend-only
+`EBAY_CLIENT_ID` / `EBAY_CLIENT_SECRET` runtime secrets to use real Browse results.
+Sandbox URLs are isolated behind `EBAY_ENVIRONMENT=sandbox`. Other providers stay
+mocked. No user OAuth is required: application tokens are generated automatically,
+refreshed before expiry and cached only in memory. Never expose these secrets or
+tokens to the frontend. Account-deletion compliance remains a separate module and
+uses its existing independent verification token.
+
+All currently supported BYB markets initially retrieve from `EBAY_US`. This does
+**not** establish delivery eligibility to Georgia. Searches combine available query,
+category, brand, model and feature keywords, request at most 20 fixed-price
+listings, and optionally enrich at most five listings with verified item aspects.
+Unverified brand/features are never fabricated. Each real listing has a stable
+separate product identity, so conditions/variants and mock catalog data cannot
+overwrite one another. Seller feedback metrics are retained; seller usernames
+are deliberately not persisted because the current deletion handler stores no
+eBay account mappings.
+
+Money retains its original currency and exact minor units. There is no FX:
+USD offers cannot satisfy a GEL budget; budgeted searches exclude different
+currencies. Searches without a budget can show USD offers labeled as USD.
+Marketplace selection is separate from destination shipping. No affiliate/EPN
+parameters or click tracking are added; links use `itemWebUrl`.
+
+Network failures are isolated by the existing Search service. Requests have a
+five-second timeout, bounded responses, and at most one token-refresh retry on
+401. Existing persisted mocks and stale offers are not automatically removed;
+review those records before enabling real mode in production. No startup cleanup
+or database migration is performed.
+
+Official API references: [Browse search](https://developer.ebay.com/api-docs/buy/browse/resources/item_summary/methods/search),
+[Browse filters](https://developer.ebay.com/api-docs/buy/static/ref-buy-browse-filters.html),
+[application tokens](https://developer.ebay.com/api-docs/static/oauth-client-credentials-grant.html).
+
+### Search relevance and offer provenance
+
+Explicit model-like queries retain normalized residual/model terms instead of
+collapsing to their extracted brand. The shared search relevance guard checks
+model boundaries and conservatively excludes accessory titles; repository SQL
+applies the same model/accessory constraints before counts and pagination.
+Descriptive Concierge requests continue to use category/features/budget intent.
+
+Every newly fetched offer receives backend-owned
+`affiliate_metadata._byb.provenance`:
+`{"version":1,"provider":"ebay","mode":"real","environment":"production"}`.
+Mocks use `mode:"mock", environment:"mock"`; sandbox data is explicitly marked
+`sandbox`. This is internal source bookkeeping, not affiliate/EPN tracking.
+The ingestion boundary overwrites this namespace with trusted registration data.
+
+When any real provider is registered, search and product-detail eligibility allow
+only explicitly configured real sources with matching merchant, version, mode
+and environment. Mock providers are not fetched in this mode. Missing/legacy
+provenance is unknown and excluded; products with another eligible offer remain
+visible. In default all-mock development mode, legacy fixtures remain usable.
+Cached eligible real offers remain searchable when a provider fails; existing
+currency and relevance constraints still apply. No freshness expiry is introduced.
+
+Existing real offers written before this contract are also unknown: they become
+eligible after successful retrieval stamps provenance, not through ID/URL guesses.
+No database records are deleted or automatically deactivated. For a later reviewed
+cleanup, inventory exact merchant + external ID + destination URL matches against
+a versioned snapshot of the checked-in mock catalog, review conflicting real
+provenance, back up the inventory, and separately authorize offer-only deactivation
+by reviewed offer UUIDs. Never deactivate shared products or unrelated offers.

@@ -92,7 +92,7 @@ export function ProductCard({ product, market, onClick }: ProductCardProps) {
           <div>
             {bestOffer && (
               <span className="text-xl font-bold text-gray-900">
-                {formatPrice(bestOffer.priceAmount, market.currencyCode, market.currencySymbol)}
+                {formatPrice(bestOffer.priceAmount, bestOffer.currencyCode, bestOffer.currencyCode === market.currencyCode ? market.currencySymbol : bestOffer.currencyCode)}
               </span>
             )}
           </div>

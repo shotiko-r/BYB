@@ -13,7 +13,7 @@ import { conciergeRoutes } from './modules/ai/routes.js';
 import { searchRoutes } from './modules/search/routes.js';
 import { accountDeletionRoutes } from './modules/ebay/account-deletion-routes.js';
 import { providerRegistry } from './modules/provider/registry.js';
-import { AmazonProvider, TemuProvider, AliExpressProvider, EbayProvider } from './modules/provider/mock/index.js';
+import { registerProviders } from './modules/provider/register.js';
 
 const app = Fastify({ logger: false }).withTypeProvider<ZodTypeProvider>();
 
@@ -53,16 +53,9 @@ void app.register(accountDeletionRoutes, {
   logOutcome: outcome => logger.info({ outcome }, 'eBay account deletion notification receipt'),
 });
 
-function registerMockProviders() {
-  providerRegistry.register(new AmazonProvider());
-  providerRegistry.register(new TemuProvider());
-  providerRegistry.register(new AliExpressProvider());
-  providerRegistry.register(new EbayProvider());
-}
-
 async function start() {
   try {
-    registerMockProviders();
+    registerProviders(providerRegistry, env);
     await app.listen({ port: env.PORT, host: '0.0.0.0' });
     logger.info(`Server listening on port ${env.PORT}`);
   } catch (err) {

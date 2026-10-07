@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { formatPrice } from '@/lib/api';
+import { sortOffers } from '@/lib/offer-prices';
 import { useI18n } from '@/i18n/I18nContext';
 import type { ProductWithOffers, Market, Offer } from '@/types';
 
@@ -42,7 +43,7 @@ function OfferRow({ offer, market, isBest }: { offer: Offer; market: Market; isB
         </div>
       </td>
       <td className="px-4 py-3 text-right font-bold text-lg">
-        {formatPrice(offer.priceAmount, market.currencyCode, market.currencySymbol)}
+        {formatPrice(offer.priceAmount, offer.currencyCode, offer.currencyCode === market.currencyCode ? market.currencySymbol : offer.currencyCode)}
       </td>
       <td className="px-4 py-3 text-center">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${availabilityLabel.class}`}>
@@ -75,8 +76,9 @@ function OfferRow({ offer, market, isBest }: { offer: Offer; market: Market; isB
 
 export function ProductComparison({ product, market }: ProductComparisonProps) {
   const { t } = useI18n();
-  const sortedOffers = [...product.offers].sort((a, b) => a.priceAmount - b.priceAmount);
+  const sortedOffers = sortOffers(product.offers);
   const bestPrice = sortedOffers[0]?.priceAmount;
+  const comparable = new Set(sortedOffers.map(offer => offer.currencyCode)).size === 1;
 
   return (
     <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -97,8 +99,8 @@ export function ProductComparison({ product, market }: ProductComparisonProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {sortedOffers.map((offer, index) => (
-              <OfferRow key={offer.id} offer={offer} market={market} isBest={offer.priceAmount === bestPrice} />
+            {sortedOffers.map((offer) => (
+              <OfferRow key={offer.id} offer={offer} market={market} isBest={comparable && offer.priceAmount === bestPrice} />
             ))}
           </tbody>
         </table>

@@ -176,7 +176,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
                         </div>
                       </div>
                       <div className="text-3xl font-bold text-gray-900">
-                        {formatPrice(bestOffer.priceAmount, selectedMarket.currencyCode, selectedMarket.currencySymbol)}
+                        {formatPrice(bestOffer.priceAmount, bestOffer.currencyCode, bestOffer.currencyCode === selectedMarket.currencyCode ? selectedMarket.currencySymbol : bestOffer.currencyCode)}
                       </div>
                       <a
                         href={bestOffer.destinationUrl}
@@ -213,7 +213,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p className="font-semibold text-gray-900">
-                            {formatPrice(offer.priceAmount, selectedMarket.currencyCode, selectedMarket.currencySymbol)}
+                            {formatPrice(offer.priceAmount, offer.currencyCode, offer.currencyCode === selectedMarket.currencyCode ? selectedMarket.currencySymbol : offer.currencyCode)}
                           </p>
                           <p className="text-xs text-gray-500">{offer.availability}</p>
                         </div>

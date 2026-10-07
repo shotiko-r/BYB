@@ -57,3 +57,37 @@ describe('product search SQL and mapping', () => {
     expect(ProductWithOffersSchema.safeParse(result.products[0]).success).toBe(true);
   });
 });
+
+// Validate predicate placement in both SQL statements, including offer aggregation.
+describe('cached relevance and provenance SQL', () => {
+  const real = { version: 1 as const, provider: 'ebay', mode: 'real' as const, environment: 'production' as const };
+  it('filters cached models and legacy/mock sources before count, aggregation and pagination', async () => {
+    db.mockResolvedValueOnce({ rows: [{ total: '2' }] }).mockResolvedValueOnce({ rows: [] });
+    const result = await repository.search({ ...base, page: 2, limit: 1, query: 'Sony WH-1000XM5', brand: 'Sony', eligibleSources: [real] });
+    expect(result.total).toBe(2);
+    const [count, page] = db.mock.calls;
+    for (const [sql, params] of [count!, page!]) {
+      expect(sql).toContain("o.affiliate_metadata #> '{_byb,provenance}' = $3::jsonb");
+      expect(sql).toContain('p.name ~* $4 AND regexp_replace(p.name,');
+      expect(sql).toContain("'', 'gi') !~* $5");
+      expect(sql).toContain('lower(p.brand) = lower($6)');
+      expect(params.slice(0, 3)).toEqual(['market', 'ebay', JSON.stringify(real)]);
+      const pattern = new RegExp(params[3] as string, 'i');
+      expect(pattern.test('Sony WH 1000XM5')).toBe(true);
+      for (const cached of ['Sony WH-1000XM4', 'Sony WH-1000XM6', 'Sony Alpha a6000', 'Sony PlayStation 5']) expect(pattern.test(cached)).toBe(false);
+      expect(sql).not.toContain('external_product_id LIKE');
+    }
+    expect(page![0].indexOf('p.name ~*')).toBeLessThan(page![0].indexOf('GROUP BY'));
+    expect(page![0].indexOf("o.affiliate_metadata #>")).toBeLessThan(page![0].indexOf('GROUP BY'));
+    expect(page![1].slice(-2)).toEqual([1, 1]);
+  });
+  it('filters individual offers, preserving a legitimate second merchant on a shared product', async () => {
+    const other = { ...real, provider: 'another' };
+    await repository.search({ ...base, eligibleSources: [real, other] });
+    const sql = db.mock.calls[1]![0] as string;
+    expect(sql).toContain("(m.code = $2 AND o.affiliate_metadata #> '{_byb,provenance}' = $3::jsonb) OR (m.code = $4 AND o.affiliate_metadata #> '{_byb,provenance}' = $5::jsonb)");
+    expect(sql).not.toContain('p.attributes');
+    expect(sql).toContain('json_agg');
+    expect(db.mock.calls[1]![1].slice(1, 5)).toEqual(['ebay', JSON.stringify(real), 'another', JSON.stringify(other)]);
+  });
+});

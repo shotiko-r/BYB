@@ -1,4 +1,5 @@
 import type { ProviderProduct } from '@byb/shared/types';
+import { createHash } from 'node:crypto';
 import { query, getClient } from '../../config/database.js';
 
 interface CreateProductInput {
@@ -67,11 +68,16 @@ function findMatchingProduct(
   providerProduct: ProviderProduct,
   existingProducts: ProductRow[]
 ): ProductRow | null {
+  if (providerProduct.attributes?.source === 'ebay_browse') {
+    return existingProducts.find(product => product.attributes.source === 'ebay_browse'
+      && product.attributes.listingIdentity === providerProduct.externalId) ?? null;
+  }
   const normalizedName = providerProduct.name.toLowerCase().trim();
   const normalizedBrand = providerProduct.brand?.toLowerCase().trim();
   const normalizedModel = providerProduct.model?.toLowerCase().trim();
 
   for (const product of existingProducts) {
+    if (product.attributes.source === 'ebay_browse') continue;
     const productName = product.name.toLowerCase().trim();
     const productBrand = product.brand?.toLowerCase().trim();
     const productModel = product.model?.toLowerCase().trim();
@@ -109,16 +115,18 @@ export class ProductNormalizationService {
         const matchedProduct = findMatchingProduct(pp, existingProducts);
 
         if (matchedProduct) {
+          const realListing = pp.attributes?.source === 'ebay_browse';
+          const categoryId = matchedProduct.category_id || (realListing ? await this.findOrCreateCategory(pp.category) : undefined);
           normalized.push({
             product: {
               slug: matchedProduct.slug,
-              name: matchedProduct.name,
+              name: realListing ? pp.name : matchedProduct.name,
               description: matchedProduct.description || undefined,
-              brand: matchedProduct.brand || undefined,
-              model: matchedProduct.model || undefined,
-              categoryId: matchedProduct.category_id || undefined,
-              imageUrl: matchedProduct.image_url || undefined,
-              attributes: matchedProduct.attributes,
+              brand: (realListing ? pp.brand : undefined) || matchedProduct.brand || undefined,
+              model: (realListing ? pp.model : undefined) || matchedProduct.model || undefined,
+              categoryId,
+              imageUrl: (realListing ? pp.imageUrl : undefined) || matchedProduct.image_url || undefined,
+              attributes: realListing ? pp.attributes : matchedProduct.attributes,
             },
             offer: {
               merchantId,
@@ -135,7 +143,10 @@ export class ProductNormalizationService {
             },
           });
         } else {
-          const slug = generateSlug(pp.name, pp.brand, pp.model);
+          // Stable per-listing identity prevents condition/variant or mock matches.
+          const slug = pp.attributes?.source === 'ebay_browse'
+            ? `ebay-${createHash('sha256').update(pp.externalId).digest('hex')}`
+            : generateSlug(pp.name, pp.brand, pp.model);
           const categoryId = await this.findOrCreateCategory(pp.category);
 
           normalized.push({
@@ -193,13 +204,21 @@ export class ProductNormalizationService {
       for (const { product, offer } of normalized) {
         let productId: string;
 
+        const realListing = product.attributes?.source === 'ebay_browse';
         const existing = await client.query<ProductRow>(
-          'SELECT id FROM products WHERE slug = $1 AND (category_id = $2 OR (category_id IS NULL AND $2 IS NULL))',
-          [product.slug, product.categoryId || null]
+          realListing ? 'SELECT id FROM products WHERE slug = $1'
+            : 'SELECT id FROM products WHERE slug = $1 AND (category_id = $2 OR (category_id IS NULL AND $2 IS NULL))',
+          realListing ? [product.slug] : [product.slug, product.categoryId || null]
         );
 
         if (existing.rows[0]) {
           productId = existing.rows[0].id;
+          if (realListing) {
+            await client.query(`UPDATE products SET attributes = $1, image_url = $2, name = $3,
+              brand = $4, model = $5, category_id = $6, updated_at = NOW() WHERE id = $7`,
+              [JSON.stringify(product.attributes), product.imageUrl || null, product.name,
+                product.brand || null, product.model || null, product.categoryId || null, productId]);
+          }
         } else {
           const created = await client.query<{ id: string }>(
             `INSERT INTO products (slug, name, description, brand, model, category_id, image_url, attributes)

@@ -1,3 +1,6 @@
+import { modelPattern, ACCESSORY_PATTERN, BUNDLE_PATTERN, searchSpecificity, type RelevancePolicy } from '../search/relevance.js';
+import { eligibleSources, offerEligibilitySql, type OfferProvenance } from '../provider/provenance.js';
+import { providerRegistry } from '../provider/registry.js';
 import { query } from '../../config/database.js';
 import type pg from 'pg';
 import type { Product, Category, ProductWithOffers, Offer } from '@byb/shared/types';
@@ -13,6 +16,8 @@ export interface ProductRepository {
 
 export interface ProductSearchFilters {
   marketId: string;
+  relevance?: RelevancePolicy;
+  eligibleSources?: OfferProvenance[];
   query?: string;
   categoryId?: string;
   categorySlug?: string;
@@ -170,15 +175,18 @@ export class PostgresProductRepository implements ProductRepository {
     const productRow = productResult.rows[0];
     if (!productRow) return null;
 
+    const offerParams: unknown[] = [id, marketId];
+    const eligibility = offerEligibilitySql(eligibleSources(providerRegistry), offerParams);
     const offersResult = await query<OfferRow>(
       `SELECT o.*, m.code as merchant_code, m.name as merchant_name, m.logo_url as merchant_logo_url
        FROM offers o
        JOIN merchants m ON o.merchant_id = m.id
-       WHERE o.product_id = $1 AND o.market_id = $2 AND o.is_active = true AND m.is_active = true
+       WHERE o.product_id = $1 AND o.market_id = $2 AND o.is_active = true AND m.is_active = true${eligibility}
        ORDER BY o.currency_code ASC, o.price_amount ASC, o.id ASC`,
-      [id, marketId]
+      offerParams
     );
 
+    if (!offersResult.rows.length && eligibleSources(providerRegistry) !== undefined) return null;
     const categoryResult = await query<CategoryRow>('SELECT * FROM categories WHERE id = $1', [productRow.category_id]);
     const category = categoryResult.rows[0] ? mapCategoryRow(categoryResult.rows[0]) : undefined;
 
@@ -190,15 +198,26 @@ export class PostgresProductRepository implements ProductRepository {
   }
 
   async search(filters: ProductSearchFilters): Promise<{ products: ProductWithOffers[]; total: number }> {
-    const { marketId, query: searchQuery, categoryId, categorySlug, features, currencyCode, brand, minPrice, maxPrice, page, limit, sort } = filters;
+    const { marketId, query: inputQuery, categoryId, categorySlug, features, currencyCode, brand, minPrice, maxPrice, page, limit, sort } = filters;
     if (!currencyCode && (minPrice !== undefined || maxPrice !== undefined || sort.startsWith('price_'))) {
       throw new Error('A currency is required for budget filtering and price sorting');
     }
+    const relevance = filters.relevance ?? searchSpecificity({ query: inputQuery, brand });
+    const searchQuery = relevance.model ? undefined : inputQuery;
     const offset = (page - 1) * limit;
 
     let whereClause = 'WHERE p.is_active = true AND o.is_active = true AND m.is_active = true AND o.market_id = $1';
     const params: unknown[] = [marketId];
-    let paramIndex = 2;
+    whereClause += offerEligibilitySql(filters.eligibleSources ?? eligibleSources(providerRegistry), params);
+    if (relevance.model) {
+      params.push(modelPattern(relevance.model), ACCESSORY_PATTERN);
+      whereClause += ` AND p.name ~* $${params.length - 1} AND regexp_replace(p.name, '${BUNDLE_PATTERN}', '', 'gi') !~* $${params.length}`;
+      if (relevance.brand) {
+        params.push(relevance.brand);
+        whereClause += ` AND (p.brand IS NULL OR lower(p.brand) = lower($${params.length}))`;
+      }
+    }
+    let paramIndex = params.length + 1;
 
     if (searchQuery) {
       whereClause += ` AND (p.name ILIKE $${paramIndex} OR p.brand ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex})`;
@@ -233,7 +252,7 @@ export class PostgresProductRepository implements ProductRepository {
       paramIndex++;
     }
 
-    if (brand) {
+    if (brand && !relevance.model) {
       whereClause += ` AND p.brand ILIKE $${paramIndex}`;
       params.push(`%${brand}%`);
       paramIndex++;

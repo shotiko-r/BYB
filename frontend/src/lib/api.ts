@@ -1,4 +1,5 @@
 import type { ConciergeRequest, ConciergeResponse } from '@byb/shared';
+import { formatMoney } from './offer-prices';
 import type { SearchResult, ProductWithOffers, Market, Merchant } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV !== 'production' ? 'http://localhost:3001' : '');
@@ -76,13 +77,7 @@ export const api = {
 };
 
 export function formatPrice(amount: number, currencyCode: string, currencySymbol: string): string {
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currencyCode,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-  return formatter.format(amount / 100).replace(currencyCode, currencySymbol);
+  return formatMoney(amount, currencyCode).replace(currencyCode, currencySymbol);
 }
 
 export function getAvailabilityLabel(availability: string): { label: string; class: string } {

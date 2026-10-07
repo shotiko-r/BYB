@@ -1,3 +1,5 @@
+import { searchSpecificity, matchesRelevance } from './relevance.js';
+import { eligibleSources, provenance } from '../provider/provenance.js';
 import { SearchIntentSchema, SearchQuerySchema, type SearchQuery, type SearchResult } from '@byb/shared/types';
 import type { ProviderRegistry, SearchIntent } from '../provider/types.js';
 import type { SearchIntentParser } from '../ai/types.js';
@@ -72,14 +74,16 @@ export class SearchService {
     const category = intent.category ? await this.productRepository.resolveCategory(intent.category) : undefined;
     const hasConstraints = Boolean(intent.category || intent.brand || (features as string[] | undefined)?.length || intent.filters?.useCase)
       || intent.minPrice !== undefined || intent.maxPrice !== undefined;
+    const relevance = searchSpecificity(intent);
+    const sources = eligibleSources(this.registry);
     const searchIntent: SearchIntent = {
       ...intent,
       category: category?.slug ?? intent.category,
       currencyCode,
       // Structured constraints drive retrieval; the original sentence remains in the public intent.
-      query: hasConstraints ? undefined : intent.query?.trim(),
+      query: relevance.model ?? relevance.terms ?? (hasConstraints ? undefined : intent.query?.trim()),
     };
-    const providers = this.registry.getForMarket(market.code);
+    const providers = this.registry.getForMarket(market.code).filter(provider => sources === undefined || provenance(provider).mode === 'real');
     if (!providers.length) throw AppError.unavailable(`No providers available for market ${market.code}`);
     const merchants = await this.merchantRepository.findAll();
     const merchantMap = new Map(merchants.filter(m => m.isActive).map(m => [m.code, m.id]));
@@ -91,19 +95,23 @@ export class SearchService {
       return {
         merchantId,
         products: result.products.filter(product =>
+          matchesRelevance(product, relevance) &&
           (!currencyCode || product.currencyCode === currencyCode) &&
           (intent.minPrice === undefined || product.priceAmount >= intent.minPrice) &&
           (intent.maxPrice === undefined || product.priceAmount <= intent.maxPrice)
-        ),
+        ).map(product => ({ ...product, affiliateMetadata: { ...product.affiliateMetadata,
+          _byb: { provenance: provenance(provider) } } })),
       };
     }));
     const successful = outcomes.flatMap(outcome => outcome.status === 'fulfilled' && outcome.value ? [outcome.value] : []);
-    if (!successful.length) throw AppError.unavailable('No configured providers completed the search');
+    if (!successful.length && sources === undefined) throw AppError.unavailable('No configured providers completed the search');
     const normalized = await this.normalizationService.normalize(successful, market.id);
     await this.normalizationService.persist(normalized);
     const result = await this.productRepository.search({
       marketId: market.id,
-      query: searchIntent.query,
+      relevance,
+      eligibleSources: sources,
+      query: relevance.model ? undefined : searchIntent.query,
       categoryId: category?.id,
       categorySlug: category ? undefined : intent.category,
       brand: intent.brand,
@@ -115,6 +123,7 @@ export class SearchService {
       limit: publicQuery.limit,
       sort: publicQuery.sort,
     });
+    if (!successful.length && result.total === 0) throw AppError.unavailable('No configured providers completed the search');
     return {
       ...result,
       page: publicQuery.page,
