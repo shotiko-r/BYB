@@ -4,6 +4,21 @@ import { registerHealth, createShutdown } from '../src/lifecycle.js';
 import { EnvSchema } from '../src/config/env-schema.js';
 
 describe('production lifecycle', () => {
+  it.each(['postgres', 'postgresql'])('accepts the %s PostgreSQL URI scheme in production', scheme => {
+    const databaseUrl = `${scheme}://example.invalid/byb`;
+    const result = EnvSchema.parse({
+      NODE_ENV: 'production',
+      FRONTEND_URL: 'https://example.invalid',
+      DATABASE_URL: databaseUrl,
+    });
+    expect(result.DATABASE_URL).toBe(databaseUrl);
+  });
+  it.each(['https', 'mysql', 'sqlite', 'postgresql+ssl', 'postgresx'])('rejects the unrelated %s URI scheme', scheme => {
+    expect(EnvSchema.safeParse({ DATABASE_URL: `${scheme}://example.invalid/byb` }).success).toBe(false);
+  });
+  it.each([undefined, '', 'not-a-url'])('requires a valid DATABASE_URL: %s', databaseUrl => {
+    expect(EnvSchema.safeParse({ DATABASE_URL: databaseUrl }).success).toBe(false);
+  });
   it.each([true, false])('readiness reports database availability: %s', async available => {
     const app = Fastify();
     registerHealth(app, async () => { if (!available) throw new Error('private database details'); });

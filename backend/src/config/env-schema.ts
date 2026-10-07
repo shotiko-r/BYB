@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
-  DATABASE_URL: z.string().url().startsWith('postgresql://'),
+  DATABASE_URL: z.string().url().regex(/^postgres(?:ql)?:\/\//, 'DATABASE_URL must use postgres:// or postgresql://'),
   FRONTEND_URL: z.string().url().optional(),
 }).superRefine((value, context) => {
   if (value.NODE_ENV !== 'production') return;
