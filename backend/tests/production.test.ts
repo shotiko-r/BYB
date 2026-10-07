@@ -4,6 +4,15 @@ import { registerHealth, createShutdown } from '../src/lifecycle.js';
 import { EnvSchema } from '../src/config/env-schema.js';
 
 describe('production lifecycle', () => {
+  it('keeps marketplace deletion token optional and validates only configured tokens', () => {
+    const base = { DATABASE_URL: 'postgres://example.invalid/byb' };
+    expect(EnvSchema.safeParse(base).success).toBe(true);
+    expect(EnvSchema.safeParse({ ...base, EBAY_MARKETPLACE_DELETION_VERIFICATION_TOKEN: '' }).success).toBe(true);
+    expect(EnvSchema.safeParse({ ...base, EBAY_MARKETPLACE_DELETION_VERIFICATION_TOKEN: 'test_token_not_a_real_secret_123456' }).success).toBe(true);
+    for (const value of ['bad', 'x'.repeat(81), 'x'.repeat(31) + '!']) {
+      expect(EnvSchema.safeParse({ ...base, EBAY_MARKETPLACE_DELETION_VERIFICATION_TOKEN: value }).success).toBe(false);
+    }
+  });
   it.each(['postgres', 'postgresql'])('accepts the %s PostgreSQL URI scheme in production', scheme => {
     const databaseUrl = `${scheme}://example.invalid/byb`;
     const result = EnvSchema.parse({

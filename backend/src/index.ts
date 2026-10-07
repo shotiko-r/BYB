@@ -11,6 +11,7 @@ import { productRoutes } from './modules/product/routes.js';
 import { merchantRoutes } from './modules/merchant/routes.js';
 import { conciergeRoutes } from './modules/ai/routes.js';
 import { searchRoutes } from './modules/search/routes.js';
+import { accountDeletionRoutes } from './modules/ebay/account-deletion-routes.js';
 import { providerRegistry } from './modules/provider/registry.js';
 import { AmazonProvider, TemuProvider, AliExpressProvider, EbayProvider } from './modules/provider/mock/index.js';
 
@@ -46,6 +47,11 @@ void app.register(productRoutes, { prefix: '/api' });
 void app.register(merchantRoutes, { prefix: '/api' });
 void app.register(searchRoutes, { prefix: '/api' });
 void app.register(conciergeRoutes, { prefix: '/api' });
+void app.register(accountDeletionRoutes, {
+  prefix: '/api',
+  verificationToken: env.EBAY_MARKETPLACE_DELETION_VERIFICATION_TOKEN,
+  logOutcome: outcome => logger.info({ outcome }, 'eBay account deletion notification receipt'),
+});
 
 function registerMockProviders() {
   providerRegistry.register(new AmazonProvider());

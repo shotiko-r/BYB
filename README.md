@@ -313,3 +313,47 @@ Persistent volumes/addon lifecycle must survive workload replacement. Never dele
 or recreate a populated database to redeploy BYB. Configure and verify backups and
 restore procedures before accepting important data. This MVP still uses mock
 providers; production deployment does not make those offers real merchant data.
+
+## eBay Marketplace Account Deletion compliance
+
+Production GET/POST endpoint:
+`https://byb-backend.usectl.com/api/ebay/account-deletion`
+
+Set the backend runtime secret `EBAY_MARKETPLACE_DELETION_VERIFICATION_TOKEN=<secret>`.
+Generate a token with 32–80 alphanumeric/underscore/hyphen characters; never put
+its value in Git or frontend variables. Missing/empty configuration leaves the
+application working but the endpoint returns 503. Configured invalid tokens fail
+validation. Previous EBAY_ACCOUNT_DELETION_* and client credential settings are
+not used by this token-only implementation.
+
+GET requires exactly one nonempty `challenge_code` and returns HTTP 200 JSON with
+`challengeResponse`: lowercase SHA-256 hex over UTF-8 challenge code + token +
+the exact production endpoint above, with no separators or trailing slash.
+Host/forwarded headers never influence this URL. Invalid challenges return 400.
+
+POST accepts bounded (64 KiB) JSON account-deletion envelopes and returns 204.
+Malformed requests return 400, oversized bodies 413, unsupported content types 415.
+Duplicates are safe. No payloads/account identifiers are stored or logged; only a
+receipt outcome is logged. Current BYB stores public product/listing/offer data,
+not eBay account identifiers, buyer details, user tokens or account mappings.
+Therefore this handler deletes nothing: products, offers and merchants stay intact.
+
+This is receipt acknowledgement ONLY: POST sender authenticity is not verified.
+The verification token proves endpoint ownership during GET, not POST authenticity.
+eBay's official guide also describes notification signature verification. OAuth
+and signature-key retrieval are intentionally outside this implementation; do not
+use these unauthenticated receipts to drive deletion or account-related processing.
+Revisit verification/deletion handling before storing any account-related data.
+
+After a separately authorized deployment, manually configure in eBay's Developer
+portal (Application Keys → Alerts and Notifications → Marketplace Account Deletion):
+
+- Notification endpoint: `https://byb-backend.usectl.com/api/ebay/account-deletion`
+- Verification token: the SAME secret configured in the backend environment
+- Alert email: your operational contact
+
+Save to complete the GET challenge, run Send Test Notification, and confirm the
+Production keyset status. Portal acceptance is not established by local tests.
+
+Official specification:
+https://developer.ebay.com/develop/guides/sell/marketplace-user-account-deletion
