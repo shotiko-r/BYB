@@ -19,6 +19,7 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning data-scroll-behavior="smooth" lang="en" className={`${inter.variable} antialiased`}>
       <head>
+        <meta name="mitgo-verification" content="02af5948-e34c-407a-adfe-91be52ea16d5" />
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('byb-theme');document.documentElement.dataset.theme=t==='light'||t==='dark'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch(e){document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}})()` }} />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
