@@ -192,6 +192,8 @@
     "specifications": "სპეციფიკაცია",
     "allOffers": "ყველა შეთავაზება ({{count}})",
     "bestOffer": "უკეთესი შეთავაზება",
+    "merchantUnavailable": "გამყიდველი მიუწვდომელია",
+    "visitMerchant": "გამყიდველთან გადასვლა",
     "buyOn": "ყიდვა {{merchant}}-ზე",
     "availability": {
       "in_stock": "მარაგში არის",

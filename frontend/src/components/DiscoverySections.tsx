@@ -1,8 +1,9 @@
 'use client';
 
-import Image from 'next/image';
+import { ProductImage } from './ProductImage';
+import { merchantName } from '@/lib/merchant';
 import Link from 'next/link';
-import { formatPrice } from '@/lib/api';
+import { formatMoney } from '@/lib/offer-prices';
 import { useI18n } from '@/i18n/I18nContext';
 import type { Market, ProductWithOffers } from '@/types';
 
@@ -18,7 +19,7 @@ interface DiscoverySectionsProps {
 }
 
 // Homepage-only presentation keeps shared search result cards unchanged.
-function DecisionCard({ product, market, onProductClick }: {
+function DecisionCard({ product, onProductClick }: {
   product: ProductWithOffers;
   market: Market;
   onProductClick: (product: ProductWithOffers) => void;
@@ -29,26 +30,18 @@ function DecisionCard({ product, market, onProductClick }: {
   return (
     <button type="button" className="decision-card" onClick={() => onProductClick(product)}>
       <span className="decision-image">
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt=""
-            fill
-            sizes="(max-width: 600px) 120px, 240px"
-            unoptimized={product.imageUrl.startsWith('http')}
-          />
-        ) : <span className="image-placeholder" aria-hidden="true">BYB</span>}
+        <ProductImage src={product.imageUrl} alt={product.name} sizes="(max-width: 600px) 120px, 240px" />
       </span>
       <span className="decision-info">
         <span className="decision-brand">{product.brand}</span>
         <span className="decision-name">{product.name}</span>
         {offer && (
           <span className="decision-price">
-            {formatPrice(offer.priceAmount, market.currencyCode, market.currencySymbol)}
+            {formatMoney(offer.priceAmount, offer.currencyCode)}
           </span>
         )}
         <span className="decision-merchant">
-          {offer?.merchant?.name}
+          {merchantName(offer?.merchant) || t('product.merchantUnavailable')}
           {offer && <> · {t(`product.availability.${offer.availability}`)}</>}
         </span>
         <span className="decision-offers">

@@ -1,11 +1,13 @@
 'use client';
 
-import Image from 'next/image';
+import { ProductImage } from '@/components/ProductImage';
+import { merchantName } from '@/lib/merchant';
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductComparison } from '@/components/ProductComparison';
-import { api, formatPrice } from '@/lib/api';
+import { api } from '@/lib/api';
+import { formatMoney } from '@/lib/offer-prices';
 import { useI18n } from '@/i18n/I18nContext';
 import type { Market, ProductWithOffers } from '@/types';
 
@@ -103,7 +105,6 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
   }
 
   const bestOffer = product.offers[0];
-  const isExternalProductImage = product.imageUrl?.startsWith('http');
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -121,32 +122,16 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
           </nav>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 min-w-0 space-y-6">
               <article>
                 <header className="mb-6">
                   {product.brand && <p className="text-sm text-gray-500 mb-1">{product.brand}</p>}
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2 break-words">{product.name}</h1>
                   {product.model && <p className="text-gray-600">{t('product.model', { model: product.model })}</p>}
                 </header>
 
-                <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden mb-6">
-                  {product.imageUrl ? (
-                    <Image
-                      src={product.imageUrl}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                      priority
-                      sizes="(max-width: 1024px) 100vw, 66vw"
-                      unoptimized={product.imageUrl?.startsWith('http')}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  )}
+                <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden mb-6">
+                  <ProductImage src={product.imageUrl} alt={product.name} priority sizes="(max-width: 1024px) 100vw, 66vw" />
                 </div>
 
                 <ProductComparison product={product} market={selectedMarket} />
@@ -160,34 +145,24 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
                   {bestOffer && (
                     <div className="space-y-4">
                       <div className="flex items-center gap-3">
-                        {bestOffer.merchant?.logoUrl && (
-                          <Image
-                            src={bestOffer.merchant.logoUrl}
-                            alt={bestOffer.merchant.name}
-                            width={40}
-                            height={40}
-                            className="object-contain rounded bg-gray-50 p-1"
-                            unoptimized={bestOffer.merchant.logoUrl?.startsWith('http')}
-                          />
-                        )}
                         <div>
-                          <p className="font-medium">{bestOffer.merchant?.name}</p>
+                          <p className="font-medium">{merchantName(bestOffer.merchant) || t('product.merchantUnavailable')}</p>
                           <p className="text-sm text-gray-500">{bestOffer.availability === 'in_stock' ? t('product.availability.in_stock') : bestOffer.availability}</p>
                         </div>
                       </div>
                       <div className="text-3xl font-bold text-gray-900">
-                        {formatPrice(bestOffer.priceAmount, bestOffer.currencyCode, bestOffer.currencyCode === selectedMarket.currencyCode ? selectedMarket.currencySymbol : bestOffer.currencyCode)}
+                        {formatMoney(bestOffer.priceAmount, bestOffer.currencyCode)}
                       </div>
                       <a
                         href={bestOffer.destinationUrl}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="sponsored nofollow noopener noreferrer"
                         className="btn-primary w-full"
                       >
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
-                        {t('product.buyOn', { merchant: bestOffer.merchant?.name || '' })}
+                        {merchantName(bestOffer.merchant) ? t('product.buyOn', { merchant: merchantName(bestOffer.merchant)! }) : t('product.visitMerchant')}
                       </a>
                     </div>
                   )}
@@ -199,21 +174,11 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
                     {product.offers.slice(0, 5).map((offer) => (
                       <li key={offer.id} className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                          {offer.merchant?.logoUrl && (
-                            <Image
-                              src={offer.merchant.logoUrl}
-                              alt=""
-                              width={24}
-                              height={24}
-                              className="object-contain rounded bg-gray-100 p-0.5 flex-shrink-0"
-                              unoptimized={offer.merchant.logoUrl?.startsWith('http')}
-                            />
-                          )}
-                          <span className="text-sm font-medium truncate">{offer.merchant?.name}</span>
+                          <span className="text-sm font-medium truncate">{merchantName(offer.merchant) || t('product.merchantUnavailable')}</span>
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p className="font-semibold text-gray-900">
-                            {formatPrice(offer.priceAmount, offer.currencyCode, offer.currencyCode === selectedMarket.currencyCode ? selectedMarket.currencySymbol : offer.currencyCode)}
+                            {formatMoney(offer.priceAmount, offer.currencyCode)}
                           </p>
                           <p className="text-xs text-gray-500">{offer.availability}</p>
                         </div>

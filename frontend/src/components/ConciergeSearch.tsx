@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
+import { ProductImage } from './ProductImage';
+import { merchantName } from '@/lib/merchant';
+import { formatMoney } from '@/lib/offer-prices';
 import Link from 'next/link';
 import { ConciergeAnswersSchema, ConciergeResponseSchema, type ConciergeRequest, type ConciergeResponse, type ConciergeQuestion } from '@byb/shared';
 import { api } from '@/lib/api';
@@ -20,8 +22,7 @@ function priceFor(product: ProductWithOffers, currency?: string) {
   return offers.filter(o => o.currencyCode === selectedCurrency).sort((a, b) => a.priceAmount - b.priceAmount)[0];
 }
 function displayPrice(amount: number, currency: string) {
-  const digits = new Intl.NumberFormat('en', { style: 'currency', currency }).resolvedOptions().maximumFractionDigits;
-  return new Intl.NumberFormat('en', { style: 'currency', currency }).format(amount / 10 ** (digits ?? 2));
+  return formatMoney(amount, currency);
 }
 
 export function ConciergeSearch({ market }: { market: Market }) {
@@ -164,10 +165,10 @@ export function ConciergeSearch({ market }: { market: Market }) {
                 const merchant = offer?.merchant ?? product.merchant;
                 return <article className={`decision-card concierge-card ${index === 0 ? 'concierge-pick' : ''}`} key={product.id}>
                   <div className="concierge-card-heading">{index === 0 && <span className="concierge-pick-label">{t('concierge.pick')}</span>}<span className="concierge-muted">{t('concierge.match', { score: recommendation.matchScore })}</span></div>
-                  {product.imageUrl && <div className="decision-image"><Image src={product.imageUrl} alt={product.name} fill sizes="(max-width: 600px) 100vw, 400px" unoptimized /></div>}
+                  <div className="decision-image"><ProductImage src={product.imageUrl} alt={product.name} sizes="(max-width: 600px) 100vw, 400px" /></div>
                   <div className="decision-info">
                     <h3 className="decision-name">{product.name}</h3>
-                    {offer ? <><p className="decision-price">{displayPrice(offer.priceAmount, offer.currencyCode)}</p><p className="concierge-muted">{t('concierge.priceLabel', { currency: offer.currencyCode })}</p>{merchant?.name && <p className="decision-merchant">{merchant.name}</p>}<p className="decision-merchant">{t(`product.availability.${offer.availability}`)}</p></> : <p className="concierge-muted">{t('concierge.priceUnavailable')}</p>}
+                    {offer ? <><p className="decision-price">{displayPrice(offer.priceAmount, offer.currencyCode)}</p><p className="concierge-muted">{t('concierge.priceLabel', { currency: offer.currencyCode })}</p><p className="decision-merchant">{merchantName(merchant) || t('product.merchantUnavailable')}</p><p className="decision-merchant">{t(`product.availability.${offer.availability}`)}</p></> : <p className="concierge-muted">{t('concierge.priceUnavailable')}</p>}
                     {!!recommendation.reasons.length && <ul className="concierge-reasons">{recommendation.reasons.map((reason, i) => <li key={i}>{reason}</li>)}</ul>}
                     <Link className="decision-offers" href={`/product/${encodeURIComponent(product.id)}?market=${encodeURIComponent(market.code)}`}>{t('concierge.view')}<span aria-hidden="true">↗</span></Link>
                   </div>

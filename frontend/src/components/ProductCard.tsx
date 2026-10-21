@@ -1,8 +1,8 @@
 'use client';
 
-import Image from 'next/image';
-import type { SyntheticEvent } from 'react';
-import { formatPrice } from '@/lib/api';
+import { ProductImage } from './ProductImage';
+import { merchantName } from '@/lib/merchant';
+import { formatMoney } from '@/lib/offer-prices';
 import { useI18n } from '@/i18n/I18nContext';
 import type { ProductWithOffers, Market } from '@/types';
 
@@ -12,7 +12,7 @@ interface ProductCardProps {
   onClick: (product: ProductWithOffers) => void;
 }
 
-export function ProductCard({ product, market, onClick }: ProductCardProps) {
+export function ProductCard({ product, onClick }: ProductCardProps) {
   const { t } = useI18n();
   const bestOffer = product.offers[0];
   const offerCount = product.offers.length;
@@ -27,40 +27,22 @@ export function ProductCard({ product, market, onClick }: ProductCardProps) {
 
   const availability = bestOffer?.availability as keyof typeof availabilityLabels;
   const availabilityLabel = availabilityLabels[availability] || availabilityLabels.unknown;
-  const isExternalImage = product.imageUrl?.startsWith('http');
+  const merchant = merchantName(bestOffer?.merchant);
 
   return (
     <article
       onClick={() => onClick(product)}
-      className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-pointer"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onClick(product)}
-      role="button"
-      aria-label={`View ${product.name}`}
+      className="group min-w-0 bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-pointer"
     >
       <div className="aspect-square bg-gray-50 relative overflow-hidden">
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-            unoptimized={isExternalImage}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
-            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-        )}
+        <ProductImage src={product.imageUrl} alt={product.name}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw" />
         {offerCount > 1 && (
           <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full">
             {t('common.compareOffers', { count: offerCount })}
           </div>
         )}
-        {bestOffer && bestOffer.availability !== 'in_stock' && (
+        {bestOffer && bestOffer.availability !== 'in_stock' && bestOffer.availability !== 'unknown' && (
           <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
             {availabilityLabel.label}
           </div>
@@ -69,21 +51,16 @@ export function ProductCard({ product, market, onClick }: ProductCardProps) {
 
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors flex-1">
-            {product.name}
+          <h3 className="font-semibold text-gray-900 line-clamp-2 break-words min-w-0 group-hover:text-blue-600 transition-colors flex-1">
+            <button type="button" className="text-left w-full line-clamp-2 break-words" onClick={(e) => { e.stopPropagation(); onClick(product); }}>
+              {product.name}
+            </button>
           </h3>
-          {bestOffer?.merchant && (
-            <Image
-              src={bestOffer.merchant.logoUrl || ''}
-              alt={bestOffer.merchant.name}
-              width={32}
-              height={32}
-              className="object-contain rounded bg-gray-50 p-1 flex-shrink-0"
-              onError={(e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }}
-            />
-          )}
         </div>
 
+        {bestOffer && <span className="inline-block max-w-full break-words text-xs font-medium text-gray-700 bg-gray-100 rounded-full px-2.5 py-1 mb-2">
+          {merchant || t('product.merchantUnavailable')}
+        </span>}
         {product.brand && (
           <p className="text-sm text-gray-500 mb-2">{product.brand}</p>
         )}
@@ -92,7 +69,7 @@ export function ProductCard({ product, market, onClick }: ProductCardProps) {
           <div>
             {bestOffer && (
               <span className="text-xl font-bold text-gray-900">
-                {formatPrice(bestOffer.priceAmount, bestOffer.currencyCode, bestOffer.currencyCode === market.currencyCode ? market.currencySymbol : bestOffer.currencyCode)}
+                {formatMoney(bestOffer.priceAmount, bestOffer.currencyCode)}
               </span>
             )}
           </div>
@@ -103,6 +80,13 @@ export function ProductCard({ product, market, onClick }: ProductCardProps) {
           )}
         </div>
 
+        {bestOffer?.destinationUrl && (
+          <a href={bestOffer.destinationUrl} target="_blank" rel="sponsored nofollow noopener noreferrer"
+            onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}
+            className="mt-3 w-full inline-flex justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            {merchant ? t('product.buyOn', { merchant }) : t('product.visitMerchant')}
+          </a>
+        )}
         {offerCount > 1 && bestOffer && (
           <button
             onClick={(e) => { e.stopPropagation(); onClick(product); }}

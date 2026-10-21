@@ -64,12 +64,12 @@ export type Offer = {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  merchant?: Merchant;
+  merchant?: Pick<Merchant, 'id' | 'code' | 'name' | 'logoUrl'>;
 };
 
 export type ProductWithOffers = Product & {
   offers: Offer[];
-  merchant?: Merchant;
+  merchant?: Pick<Merchant, 'id' | 'code' | 'name' | 'logoUrl'>;
   category?: Category;
 };
 

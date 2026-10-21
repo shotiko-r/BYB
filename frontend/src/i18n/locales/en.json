@@ -217,6 +217,8 @@
     "specifications": "Specifications",
     "allOffers": "All Offers ({{count}})",
     "bestOffer": "Best Offer",
+    "merchantUnavailable": "Merchant unavailable",
+    "visitMerchant": "Visit merchant",
     "buyOn": "Buy on {{merchant}}",
     "availability": {
       "in_stock": "In Stock",
@@ -260,6 +262,8 @@
     "specifications": "Specifications",
     "allOffers": "All Offers ({{count}})",
     "bestOffer": "Best Offer",
+    "merchantUnavailable": "Merchant unavailable",
+    "visitMerchant": "Visit merchant",
     "buyOn": "Buy on {{merchant}}",
     "availability": {
       "in_stock": "In Stock",

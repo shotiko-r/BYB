@@ -6,5 +6,6 @@ export function sortOffers<T extends PricedOffer>(offers: T[]): T[] {
 export function formatMoney(amount: number, currencyCode: string): string {
   const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode });
   const digits = formatter.resolvedOptions().maximumFractionDigits ?? 2;
-  return formatter.format(amount / 10 ** digits);
+  return formatter.formatToParts(amount / 10 ** digits).map(part =>
+    part.type === 'currency' && currencyCode === 'GEL' ? '₾' : part.value).join('');
 }
