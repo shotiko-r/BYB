@@ -1,8 +1,9 @@
+import type { FeedSearchPolicy } from '../provider/aliexpress-feed.js';
+import type { ProviderRegistry } from '../provider/types.js';
 import { modelPattern, ACCESSORY_PATTERN, BUNDLE_PATTERN, searchSpecificity, type RelevancePolicy } from '../search/relevance.js';
-import { eligibleSources, offerEligibilitySql, type OfferProvenance } from '../provider/provenance.js';
+import { eligibleSources, feedSearchPolicy, offerEligibilitySql, type OfferProvenance } from '../provider/provenance.js';
 import { providerRegistry } from '../provider/registry.js';
 import { query } from '../../config/database.js';
-import type pg from 'pg';
 import type { Product, Category, ProductWithOffers, Offer } from '@byb/shared/types';
 
 export interface ProductRepository {
@@ -18,6 +19,7 @@ export interface ProductSearchFilters {
   marketId: string;
   relevance?: RelevancePolicy;
   eligibleSources?: OfferProvenance[];
+  feedPolicy?: FeedSearchPolicy;
   query?: string;
   categoryId?: string;
   categorySlug?: string;
@@ -89,6 +91,12 @@ interface OfferRow {
   merchant_logo_url?: string;
 }
 
+// pg top-level dates and json_agg offset strings share the same public UTC format.
+function isoDatetime(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toISOString();
+}
+
 function mapProductRow(row: ProductRow): Product {
   return {
     id: row.id,
@@ -101,8 +109,8 @@ function mapProductRow(row: ProductRow): Product {
     imageUrl: row.image_url,
     attributes: row.attributes,
     isActive: row.is_active,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: isoDatetime(row.created_at),
+    updatedAt: isoDatetime(row.updated_at),
   };
 }
 
@@ -114,8 +122,8 @@ function mapCategoryRow(row: CategoryRow): Category {
     description: row.description,
     parentId: row.parent_id,
     isActive: row.is_active,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: isoDatetime(row.created_at),
+    updatedAt: isoDatetime(row.updated_at),
   };
 }
 
@@ -124,6 +132,8 @@ function mapOfferRow(row: OfferRow): Offer {
     id: row.id,
     productId: row.product_id,
     merchantId: row.merchant_id,
+    ...(row.merchant_code && row.merchant_name ? { merchant: { id: row.merchant_id,
+      code: row.merchant_code, name: row.merchant_name, logoUrl: row.merchant_logo_url ?? null } } : {}),
     marketId: row.market_id,
     externalProductId: row.external_product_id,
     priceAmount: row.price_amount,
@@ -132,10 +142,10 @@ function mapOfferRow(row: OfferRow): Offer {
     shippingInfo: row.shipping_info,
     destinationUrl: row.destination_url,
     affiliateMetadata: row.affiliate_metadata,
-    lastCheckedAt: row.last_checked_at,
+    lastCheckedAt: isoDatetime(row.last_checked_at),
     isActive: row.is_active,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: isoDatetime(row.created_at),
+    updatedAt: isoDatetime(row.updated_at),
   };
 }
 
@@ -167,7 +177,7 @@ export class PostgresProductRepository implements ProductRepository {
     return result.rows[0] ? mapProductRow(result.rows[0]) : null;
   }
 
-  async findByIdWithOffers(id: string, marketId: string): Promise<ProductWithOffers | null> {
+  async findByIdWithOffers(id: string, marketId: string, registry: ProviderRegistry = providerRegistry): Promise<ProductWithOffers | null> {
     const productResult = await query<ProductRow>(
       'SELECT * FROM products WHERE id = $1 AND is_active = true',
       [id]
@@ -176,7 +186,7 @@ export class PostgresProductRepository implements ProductRepository {
     if (!productRow) return null;
 
     const offerParams: unknown[] = [id, marketId];
-    const eligibility = offerEligibilitySql(eligibleSources(providerRegistry), offerParams);
+    const eligibility = offerEligibilitySql(eligibleSources(registry), offerParams, feedSearchPolicy(registry));
     const offersResult = await query<OfferRow>(
       `SELECT o.*, m.code as merchant_code, m.name as merchant_name, m.logo_url as merchant_logo_url
        FROM offers o
@@ -186,7 +196,7 @@ export class PostgresProductRepository implements ProductRepository {
       offerParams
     );
 
-    if (!offersResult.rows.length && eligibleSources(providerRegistry) !== undefined) return null;
+    if (!offersResult.rows.length && (eligibleSources(registry) !== undefined || productRow.attributes.source === 'admitad-feed')) return null;
     const categoryResult = await query<CategoryRow>('SELECT * FROM categories WHERE id = $1', [productRow.category_id]);
     const category = categoryResult.rows[0] ? mapCategoryRow(categoryResult.rows[0]) : undefined;
 
@@ -208,7 +218,7 @@ export class PostgresProductRepository implements ProductRepository {
 
     let whereClause = 'WHERE p.is_active = true AND o.is_active = true AND m.is_active = true AND o.market_id = $1';
     const params: unknown[] = [marketId];
-    whereClause += offerEligibilitySql(filters.eligibleSources ?? eligibleSources(providerRegistry), params);
+    whereClause += offerEligibilitySql(filters.eligibleSources ?? eligibleSources(providerRegistry), params, filters.feedPolicy ?? feedSearchPolicy(providerRegistry));
     if (relevance.model) {
       params.push(modelPattern(relevance.model), ACCESSORY_PATTERN);
       whereClause += ` AND p.name ~* $${params.length - 1} AND regexp_replace(p.name, '${BUNDLE_PATTERN}', '', 'gi') !~* $${params.length}`;
@@ -294,7 +304,7 @@ export class PostgresProductRepository implements ProductRepository {
       ${whereClause}
     `;
 
-    const countResult = await query<{ total: string } & pg.QueryResultRow>(countSql, params);
+    const countResult = await query<{ total: string }>(countSql, params);
     const total = parseInt(countResult.rows[0]?.total || '0', 10);
 
     const selectSql = `
@@ -336,7 +346,7 @@ export class PostgresProductRepository implements ProductRepository {
     `;
 
     params.push(limit, offset);
-    const result = await query<Record<string, unknown> & pg.QueryResultRow>(selectSql, params);
+    const result = await query<Record<string, unknown>>(selectSql, params);
 
     const products: ProductWithOffers[] = result.rows.map((row) => {
       const { 
@@ -353,8 +363,8 @@ export class PostgresProductRepository implements ProductRepository {
         description: category_description as string | null,
         parentId: category_parent_id as string | null,
         isActive: category_is_active as boolean,
-        createdAt: category_created_at as string,
-        updatedAt: category_updated_at as string,
+        createdAt: isoDatetime(category_created_at as string),
+        updatedAt: isoDatetime(category_updated_at as string),
       } : undefined;
 
       const parsedOffers: Offer[] = (offers as OfferRow[])?.map(mapOfferRow) || [];

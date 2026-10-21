@@ -16,6 +16,7 @@
   "dependencies": {
     "@byb/shared": "file:../shared",
     "cors": "^2.8.6",
+    "csv-parse": "^7.0.3",
     "dotenv": "^16.3.0",
     "fastify": "^4.24.0",
     "fastify-type-provider-zod": "^1.1.0",

@@ -192,3 +192,18 @@ describe('real eBay listing identity', () => {
     expect(clientQuery).toHaveBeenLastCalledWith('COMMIT');
   });
 });
+
+
+describe('bounded normalization identity lookups', () => {
+  it('queries eBay by exact listing identity with an active filter and bounded result', async () => {
+    mockQuery.mockReset().mockResolvedValue({ rows: [] });
+    await new ProductNormalizationService().normalize([{ merchantId: 'ebay', products: [{
+      externalId: 'v1|123|0', name: 'Title must not be identity', priceAmount: 100,
+      currencyCode: 'USD', destinationUrl: 'https://ebay.com/itm/123',
+      attributes: { source: 'ebay_browse', listingIdentity: 'v1|123|0' },
+    }] }], 'GE');
+    expect(mockQuery).toHaveBeenCalledTimes(1);
+    expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining("attributes->>'listingIdentity' = $1 LIMIT 1"), ['v1|123|0']);
+    expect(mockQuery.mock.calls[0]![0]).toContain('is_active = true');
+  });
+});

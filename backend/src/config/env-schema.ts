@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import { VerificationTokenSchema } from '../modules/ebay/account-deletion.js';
+import { feedEnvFields } from '../modules/feed/config.js';
 
 export const EnvSchema = z.object({
+  ...feedEnvFields,
+  // Search/runtime never requires or validates the importer-only credential URL.
+  ADMITAD_ALIEXPRESS_FEED_URL: z.unknown().transform(() => undefined),
+  ALIEXPRESS_SEARCH_ENABLED: z.enum(['true', 'false']).default('false').transform(value => value === 'true'),
+  ADMITAD_ALIEXPRESS_FEED_MAX_AGE_HOURS: z.coerce.number().positive().max(8760).default(24),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
   DATABASE_URL: z.string().url().regex(/^postgres(?:ql)?:\/\//, 'DATABASE_URL must use postgres:// or postgresql://'),

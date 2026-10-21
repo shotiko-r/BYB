@@ -105,14 +105,25 @@ export class ProductNormalizationService {
     providerProductsWithMerchant: ProviderProductsWithMerchant[],
     marketId: string
   ): Promise<NormalizedProduct[]> {
-    const existingProductsResult = await query<ProductRow>('SELECT * FROM products WHERE is_active = true');
-    const existingProducts = existingProductsResult.rows;
-
     const normalized: NormalizedProduct[] = [];
 
     for (const { products, merchantId } of providerProductsWithMerchant) {
       for (const pp of products) {
-        const matchedProduct = findMatchingProduct(pp, existingProducts);
+        const real = pp.attributes?.source === 'ebay_browse';
+        const candidates = await query<ProductRow>(real
+          ? `SELECT * FROM products WHERE is_active = true AND attributes->>'source' = 'ebay_browse'
+              AND attributes->>'listingIdentity' = $1 LIMIT 1`
+          : `SELECT * FROM products WHERE is_active = true
+              AND (attributes->>'source' IS DISTINCT FROM 'ebay_browse')
+              AND (attributes->>'source' IS DISTINCT FROM 'admitad-feed')
+              AND ((lower(btrim(name)) = $1 AND
+                ((NULLIF($2, '') IS NOT NULL AND lower(btrim(brand)) = $2)
+                  OR (NULLIF($3, '') IS NOT NULL AND lower(btrim(model)) = $3)
+                  OR (NULLIF($2, '') IS NULL AND COALESCE(btrim(brand), '') = '')))
+                OR (NULLIF($2, '') IS NOT NULL AND NULLIF($3, '') IS NOT NULL
+                  AND lower(btrim(brand)) = $2 AND lower(btrim(model)) = $3)) LIMIT 1`,
+          real ? [pp.externalId] : [pp.name.toLowerCase().trim(), pp.brand?.toLowerCase().trim() ?? '', pp.model?.toLowerCase().trim() ?? '']);
+        const matchedProduct = findMatchingProduct(pp, candidates.rows);
 
         if (matchedProduct) {
           const realListing = pp.attributes?.source === 'ebay_browse';

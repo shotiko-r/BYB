@@ -1,5 +1,5 @@
 import { searchSpecificity, matchesRelevance } from './relevance.js';
-import { eligibleSources, provenance } from '../provider/provenance.js';
+import { eligibleSources, feedSearchPolicy, provenance } from '../provider/provenance.js';
 import { SearchIntentSchema, SearchQuerySchema, type SearchQuery, type SearchResult } from '@byb/shared/types';
 import type { ProviderRegistry, SearchIntent } from '../provider/types.js';
 import type { SearchIntentParser } from '../ai/types.js';
@@ -72,7 +72,7 @@ export class SearchService {
     const currencyCode = publicQuery.currencyCode ?? (needsCurrency ? market.currencyCode : undefined);
     if (currencyCode) publicQuery.currencyCode = currencyCode;
     const category = intent.category ? await this.productRepository.resolveCategory(intent.category) : undefined;
-    const hasConstraints = Boolean(intent.category || intent.brand || (features as string[] | undefined)?.length || intent.filters?.useCase)
+    const hasConstraints = Boolean(intent.category || intent.brand || features?.length || intent.filters?.useCase)
       || intent.minPrice !== undefined || intent.maxPrice !== undefined;
     const relevance = searchSpecificity(intent);
     const sources = eligibleSources(this.registry);
@@ -83,8 +83,9 @@ export class SearchService {
       // Structured constraints drive retrieval; the original sentence remains in the public intent.
       query: relevance.model ?? relevance.terms ?? (hasConstraints ? undefined : intent.query?.trim()),
     };
-    const providers = this.registry.getForMarket(market.code).filter(provider => sources === undefined || provenance(provider).mode === 'real');
-    if (!providers.length) throw AppError.unavailable(`No providers available for market ${market.code}`);
+    const marketSources = this.registry.getForMarket(market.code).filter(provider => sources === undefined || provenance(provider).mode === 'real');
+    const providers = marketSources.filter(provider => provider.retrievalMode !== 'persisted-feed');
+    if (!marketSources.length) throw AppError.unavailable(`No providers available for market ${market.code}`);
     const merchants = await this.merchantRepository.findAll();
     const merchantMap = new Map(merchants.filter(m => m.isActive).map(m => [m.code, m.id]));
     const outcomes = await Promise.allSettled(providers.map(async provider => {
@@ -100,7 +101,8 @@ export class SearchService {
           (intent.minPrice === undefined || product.priceAmount >= intent.minPrice) &&
           (intent.maxPrice === undefined || product.priceAmount <= intent.maxPrice)
         ).map(product => ({ ...product, affiliateMetadata: { ...product.affiliateMetadata,
-          _byb: { provenance: provenance(provider) } } })),
+          _byb: { ...(product.affiliateMetadata?._byb && typeof product.affiliateMetadata._byb === 'object'
+            && !Array.isArray(product.affiliateMetadata._byb) ? product.affiliateMetadata._byb : {}), provenance: provenance(provider) } } })),
       };
     }));
     const successful = outcomes.flatMap(outcome => outcome.status === 'fulfilled' && outcome.value ? [outcome.value] : []);
@@ -111,6 +113,7 @@ export class SearchService {
       marketId: market.id,
       relevance,
       eligibleSources: sources,
+      feedPolicy: feedSearchPolicy(this.registry),
       query: relevance.model ? undefined : searchIntent.query,
       categoryId: category?.id,
       categorySlug: category ? undefined : intent.category,
@@ -118,12 +121,12 @@ export class SearchService {
       minPrice: intent.minPrice,
       maxPrice: intent.maxPrice,
       currencyCode,
-      features: features as string[] | undefined,
+      features,
       page: publicQuery.page,
       limit: publicQuery.limit,
       sort: publicQuery.sort,
     });
-    if (!successful.length && result.total === 0) throw AppError.unavailable('No configured providers completed the search');
+    if (!successful.length && result.total === 0 && providers.length) throw AppError.unavailable('No configured providers completed the search');
     return {
       ...result,
       page: publicQuery.page,
@@ -137,6 +140,6 @@ export class SearchService {
   async getProduct(productId: string, marketCode: string) {
     const market = await this.marketRepository.findByCode(marketCode);
     if (!market) throw AppError.notFound(`Market ${marketCode} not found`);
-    return this.productRepository.findByIdWithOffers(productId, market.id);
+    return this.productRepository.findByIdWithOffers(productId, market.id, this.registry);
   }
 }

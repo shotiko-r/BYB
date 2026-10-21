@@ -26,3 +26,17 @@ describe('offer-source eligibility', () => {
     expect(offerEligibilitySql([], [])).toBe(' AND FALSE');
   });
 });
+
+describe('AliExpress API configuration', () => {
+  it('does not require or retain the importer credential URL', async () => {
+    const { EnvSchema } = await import('../src/config/env-schema.js');
+    const base = { DATABASE_URL: 'postgresql://synthetic.invalid/test', ALIEXPRESS_SEARCH_ENABLED: 'true' };
+    const api = EnvSchema.parse(base);
+    expect(api.ALIEXPRESS_SEARCH_ENABLED).toBe(true);
+    expect(api.ADMITAD_ALIEXPRESS_FEED_MAX_AGE_HOURS).toBe(24);
+    expect(api.ADMITAD_ALIEXPRESS_FEED_URL).toBeUndefined();
+    const withSecret = EnvSchema.parse({ ...base, ADMITAD_ALIEXPRESS_FEED_URL: 'importer-private-marker' });
+    expect(JSON.stringify(withSecret)).not.toContain('importer-private-marker');
+    expect(EnvSchema.safeParse({ ...base, ADMITAD_ALIEXPRESS_FEED_MAX_AGE_HOURS: '0' }).success).toBe(false);
+  });
+});

@@ -62,6 +62,9 @@ export const OfferSchema = z.object({
   id: z.string().uuid(),
   productId: z.string().uuid(),
   merchantId: z.string().uuid(),
+  merchant: z.object({
+    id: z.string().uuid(), code: z.string(), name: z.string(), logoUrl: z.string().nullable(),
+  }).optional(),
   marketId: z.string().uuid(),
   externalProductId: z.string(),
   priceAmount: z.number().int().nonnegative(),

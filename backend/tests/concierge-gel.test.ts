@@ -34,7 +34,14 @@ beforeEach(() => {
     if (sql.startsWith('SELECT * FROM markets')) return { rows: [{ id: id(101), code: 'GE', currency_code: 'GEL', is_active: true }] };
     if (sql.startsWith('SELECT * FROM merchants')) return { rows: providers.map((p, i) => ({ id: id(200 + i), code: p.code, name: p.name, is_active: true })) };
     if (sql.startsWith('SELECT id, slug FROM categories') || sql.startsWith('SELECT id FROM categories')) return { rows: [category] };
-    if (sql === 'SELECT * FROM products WHERE is_active = true') return { rows: products };
+    if (sql.startsWith('SELECT * FROM products WHERE is_active = true')) {
+      expect(sql).toContain('LIMIT 1');
+      const [name, brand, model] = params;
+      return { rows: products.filter(p =>
+        (p.name.toLowerCase().trim() === name && ((brand && p.brand?.toLowerCase().trim() === brand)
+          || (model && p.model?.toLowerCase().trim() === model) || (!brand && !p.brand)))
+        || (brand && model && p.brand?.toLowerCase().trim() === brand && p.model?.toLowerCase().trim() === model)).slice(0, 1) };
+    }
     if (sql.startsWith('SELECT id FROM products')) return { rows: products.filter(p => p.slug === params[0]) };
     if (sql.includes('INSERT INTO products')) {
       const row = { id: id(products.length + 1), slug: params[0], name: params[1], description: params[2], brand: params[3], model: params[4], category_id: params[5], image_url: params[6], attributes: JSON.parse(params[7]), is_active: true, created_at: date, updated_at: date };
