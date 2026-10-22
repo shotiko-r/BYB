@@ -33,6 +33,66 @@ test('multiple eligible offers compare below main purchase area without cross-cu
   item.offers[1].isActive = false;
   assert.ok(!render(<ProductDetailContent product={item} market={market} />).includes('id="product-offers"'));
 });
+test('multiple images render a deduplicated gallery with accessible thumbnails', () => {
+  const item = product();
+  item.imageUrl = 'https://i.ebayimg.com/images/primary.jpg';
+  item.attributes.images = [
+    'https://i.ebayimg.com/images/second.jpg',
+    item.imageUrl,
+    'http://i.ebayimg.com/images/insecure.jpg',
+    'https://i.ebayimg.com/images/second.jpg',
+    42,
+  ];
+  const html = render(<ProductDetailContent product={item} market={market} />);
+  assert.ok(html.includes('aria-label="Product images"'));
+  assert.ok(html.includes('Show image 1 of 2'));
+  assert.ok(html.includes('Show image 2 of 2'));
+  assert.equal((html.match(/aria-pressed="true"/g) || []).length, 1);
+  assert.equal((html.match(/second\.jpg/g) || []).length, 1);
+  assert.ok(!html.includes('insecure.jpg'));
+});
+
+test('no images keeps the existing product image fallback', () => {
+  const html = render(<ProductDetailContent product={product()} market={market} />);
+  assert.ok(html.includes('role="img"'));
+  assert.ok(html.includes('BYB'));
+  assert.ok(!html.includes('aria-label="Product images"'));
+});
+
+test('structured aspects render while private and meaningless aspects stay hidden', () => {
+  const item = product();
+  item.attributes.aspects = [
+    { name: 'Color', value: 'Black' },
+    { name: 'Connectivity', value: 'Bluetooth 5.3' },
+    { name: 'Battery Life', value: '30 hours' },
+    { name: 'Brand', value: 'Sony' },
+    { name: 'Capacity', value: 'Does Not Apply' },
+    { name: 'Seller Notes', value: 'private seller text' },
+    { name: 'Broken', value: { nested: 'private' } },
+  ];
+  const html = render(<ProductDetailContent product={item} market={market} />);
+  for (const value of ['Connectivity', 'Bluetooth 5.3', 'Battery Life', '30 hours']) assert.ok(html.includes(value), value);
+  for (const value of ['Seller Notes', 'private seller text', 'Does Not Apply', 'nested']) assert.ok(!html.includes(value), value);
+  assert.equal((html.match(/Black/g) || []).length, 1);
+  assert.equal((html.match(/>Sony<\/dd>/g) || []).length, 1);
+});
+
+test('structured aspects are capped at twelve UI facts', () => {
+  const item = product();
+  item.attributes.aspects = Array.from({ length: 16 }, (_, index) => ({ name: `Aspect ${index}`, value: `Value ${index}` }));
+  const html = render(<ProductDetailContent product={item} market={market} />);
+  assert.ok(html.includes('Aspect 11'));
+  assert.ok(!html.includes('Aspect 12'));
+});
+
+test('description renders as escaped text, never raw HTML', () => {
+  const item = product();
+  item.description = '<script>alert(1)</script><p>Hello</p>';
+  const html = render(<ProductDetailContent product={item} market={market} />);
+  assert.ok(!html.includes('<script>alert(1)</script>'));
+  assert.ok(html.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));
+});
+
 test('unknown facts and nested attributes stay hidden', () => {
   const item = product(); item.brand = 'Unknown'; item.model = 'N/A'; item.attributes = { color: 'unknown', conditionId: 'private-id', seller: { raw: 'private' } };
   const html = render(<ProductDetailContent product={item} market={market} />);

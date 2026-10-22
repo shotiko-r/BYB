@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { ProductImage } from './ProductImage';
+import { ProductGallery } from './ProductGallery';
 import { ProductOfferSummary } from './ProductOfferSummary';
 import { ProductFacts } from './ProductFacts';
 import { ProductComparison } from './ProductComparison';
 import { useI18n } from '@/i18n/I18nContext';
+import { productImages } from '@/lib/product-presentation';
 import type { ProductWithOffers, Market } from '@/types';
 
 export function ProductDetailContent({ product, market }: { product: ProductWithOffers; market: Market }) {
@@ -17,7 +18,7 @@ export function ProductDetailContent({ product, market }: { product: ProductWith
     </nav>
     <h1>{product.name}</h1>
     <div className="product-purchase-layout">
-      <div className="product-gallery"><ProductImage src={product.imageUrl} alt={product.name} priority sizes="(max-width: 760px) 100vw, 50vw" /></div>
+      <ProductGallery images={productImages(product)} alt={product.name} sizes="(max-width: 760px) 100vw, 50vw" />
       <ProductOfferSummary product={product} />
     </div>
     <ProductFacts product={product} />

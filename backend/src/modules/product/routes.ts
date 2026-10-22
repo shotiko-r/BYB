@@ -83,7 +83,7 @@ export async function productRoutes(app: FastifyInstance) {
 
     try {
       const marketEntity = await marketService.validateMarket(marketCode);
-      const product = await productService.getProductById(id, marketEntity.id);
+      const product = await productService.getProductById(id, marketEntity.id, marketEntity.code);
       return product;
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {

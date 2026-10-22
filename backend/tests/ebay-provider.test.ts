@@ -110,6 +110,88 @@ describe('Browse client', () => {
     await expect(client(http, 10).get('/item_summary/search', 'EBAY_US')).rejects.toMatchObject({ code: 'network', message: 'eBay network failure' });
   });
 });
+describe('detail mapping', () => {
+  const detailFixture = {
+    ...fixture,
+    description: '<p>Hello <strong>world</strong></p><script>alert(1)</script><img src="https://i.ebayimg.com/tracker.jpg" onerror="alert(2)"><iframe>hidden</iframe>',
+    shortDescription: 'Short &amp; safe',
+    additionalImages: [
+      { imageUrl: 'https://i.ebayimg.com/images/second.jpg' },
+      { imageUrl: fixture.image.imageUrl },
+      { imageUrl: 'http://i.ebayimg.com/images/insecure.jpg' },
+      { imageUrl: 'https://attacker.invalid/images/nope.jpg' },
+      { imageUrl: 42 },
+    ],
+    localizedAspects: [
+      { name: 'Brand', value: 'Sony' },
+      { name: 'Model', value: 'WH-1000XM5' },
+      { name: 'Color', value: 'Black' },
+      { name: 'Color', value: ' black ' },
+      { name: 'Features', value: 'Active Noise Cancellation, Bluetooth' },
+      { name: 'Capacity', value: 'Does Not Apply' },
+      { name: 'Seller Notes', value: 'private' },
+      { name: 42, value: 'malformed' },
+    ],
+  };
+
+  it('maps bounded plain-text description and ordered, validated images in detail mode', () => {
+    const mapped = mapItem(detailFixture, { detail: true })!;
+    expect(mapped.description).toContain('Hello world');
+    expect(mapped.description).not.toContain('<');
+    expect(mapped.description).not.toContain('alert');
+    expect(mapped.imageUrl).toBe(fixture.image.imageUrl);
+    expect(mapped.attributes!.images).toEqual([fixture.image.imageUrl, 'https://i.ebayimg.com/images/second.jpg']);
+    expect(mapped.attributes!.aspects).toEqual([
+      { name: 'Brand', value: 'Sony' },
+      { name: 'Model', value: 'WH-1000XM5' },
+      { name: 'Color', value: 'Black' },
+      { name: 'Features', value: 'Active Noise Cancellation, Bluetooth' },
+    ]);
+  });
+
+  it('falls back to shortDescription and tolerates malformed optional detail fields', () => {
+    const mapped = mapItem({ ...detailFixture, description: 42, additionalImages: [{ imageUrl: false }],
+      localizedAspects: [{ name: 'Color', value: 'Black' }, { name: false, value: 'bad' }] }, { detail: true })!;
+    expect(mapped).not.toBeNull();
+    expect(mapped.description).toBe('Short & safe');
+    expect(mapped.attributes!.images).toEqual([fixture.image.imageUrl]);
+    expect(mapped.attributes!.aspects).toEqual([{ name: 'Color', value: 'Black' }]);
+  });
+
+  it('ignores malformed or insecure primary images in detail mode but keeps valid additional images', () => {
+    for (const imageUrl of ['not-a-url', 'http://i.ebayimg.com/primary.jpg']) {
+      const mapped = mapItem({ ...detailFixture, image: { imageUrl } }, { detail: true })!;
+      expect(mapped.imageUrl).toBe('https://i.ebayimg.com/images/second.jpg');
+      expect(mapped.attributes!.images).toEqual(['https://i.ebayimg.com/images/second.jpg', fixture.image.imageUrl]);
+    }
+  });
+
+  it('caps images and aspects', () => {
+    const mapped = mapItem({ ...detailFixture,
+      additionalImages: Array.from({ length: 20 }, (_, index) => ({ imageUrl: `https://i.ebayimg.com/images/${index}.jpg` })),
+      localizedAspects: Array.from({ length: 50 }, (_, index) => ({ name: `Aspect ${index}`, value: `Value ${index}` })),
+    }, { detail: true })!;
+    expect(mapped.attributes!.images).toHaveLength(12);
+    expect(mapped.attributes!.aspects).toHaveLength(40);
+  });
+
+  it('keeps detail-only enrichment out of default search mapping', () => {
+    const searchable = { ...detailFixture,
+      localizedAspects: detailFixture.localizedAspects.filter(aspect => typeof aspect.name === 'string') };
+    const mapped = mapItem(searchable)!;
+    expect(mapped.description).toBeUndefined();
+    expect(mapped.attributes).not.toHaveProperty('images');
+    expect(mapped.attributes).not.toHaveProperty('aspects');
+    expect(mapped.brand).toBe('Sony');
+    expect(mapped.model).toBe('WH-1000XM5');
+  });
+
+  it('preserves legacy default search aspect validation', () => {
+    expect(mapItem({ ...fixture, localizedAspects: [{ name: 'Brand', value: 'Unknown' }] })!.brand).toBe('Unknown');
+    expect(mapItem({ ...fixture, localizedAspects: [{ name: 42, value: 'malformed' }] })).toBeNull();
+  });
+});
+
 describe('mapping and provider', () => {
   it('maps a real-like Sony listing with exact price and anonymous metadata', () => {
     const result = mapItem(fixture)!;
@@ -175,6 +257,17 @@ describe('mapping and provider', () => {
     expect(result.products).toHaveLength(20);
     expect(http.mock.calls.filter(([url]) => String(url).includes('/item/'))).toHaveLength(5);
     expect(result.products.every(product => !product.attributes!.features || (product.attributes!.features as string[]).length === 0)).toBe(true);
+  });
+  it('uses detail mapping for getProduct without changing search calls', async () => {
+    const http = network();
+    http.mockResolvedValueOnce(Response.json({ access_token: 'fixture-token', expires_in: 3600 }))
+      .mockResolvedValueOnce(Response.json({ ...fixture, description: '<p>Detail only</p>',
+        additionalImages: [{ imageUrl: 'https://i.ebayimg.com/images/second.jpg' }] }));
+    const provider = new EbayProvider(client(http));
+    const detail = await provider.getProduct(fixture.itemId, 'GE');
+    expect(detail!.description).toBe('Detail only');
+    expect(detail!.attributes!.images).toEqual([fixture.image.imageUrl, 'https://i.ebayimg.com/images/second.jpg']);
+    expect(http.mock.calls.filter(([url]) => String(url).includes('/item/'))).toHaveLength(1);
   });
   it('gets a listing by safely encoded identity and returns null on 404', async () => {
     const http = network();

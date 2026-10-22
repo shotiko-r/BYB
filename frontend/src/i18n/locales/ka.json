@@ -272,7 +272,9 @@
       "size": "ზომა",
       "storage": "მეხსიერება",
       "capacity": "მოცულობა",
-      "connectivity": "კავშირი"
+      "connectivity": "კავშირი",
+      "gallery": "პროდუქტის სურათები",
+      "showImage": "სურათის ჩვენება {{index}} / {{total}}"
     },
     "comparePrices": "ფასების შედარება",
     "merchantOffers": "{{count}} მერჩანტის შეთავაზება",

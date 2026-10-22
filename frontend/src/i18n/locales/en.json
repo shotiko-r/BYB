@@ -347,7 +347,9 @@
       "size": "Size",
       "storage": "Storage",
       "capacity": "Capacity",
-      "connectivity": "Connectivity"
+      "connectivity": "Connectivity",
+      "gallery": "Product images",
+      "showImage": "Show image {{index}} of {{total}}"
     },
     "comparePrices": "Compare Prices",
     "merchantOffers": "{{count}} merchant offers available",
