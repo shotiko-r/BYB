@@ -89,7 +89,7 @@ function imageUrl(value: unknown): string | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   return validImageUrl((value as Record<string, unknown>).imageUrl);
 }
-function imageUrls(primary: unknown, additional: unknown): string[] {
+function imageUrls(primary: unknown, ...containers: unknown[]): string[] {
   const images: string[] = [];
   const seen = new Set<string>();
   const add = (value: unknown) => {
@@ -99,7 +99,10 @@ function imageUrls(primary: unknown, additional: unknown): string[] {
     images.push(url);
   };
   add(primary);
-  if (Array.isArray(additional)) for (const item of additional) add(item);
+  for (const container of containers) {
+    if (Array.isArray(container)) for (const item of container) add(item);
+    else add(container);
+  }
   return images;
 }
 function readAspects(input: unknown): Aspect[] {
@@ -152,6 +155,10 @@ const detailItemSchema = itemBaseSchema.extend({
   image: z.object({ imageUrl: z.unknown() }).optional().catch(undefined),
   description: z.string().optional().catch(undefined), shortDescription: z.string().optional().catch(undefined),
   additionalImages: z.array(z.unknown()).optional().catch(undefined),
+  product: z.object({
+    image: z.unknown().optional().catch(undefined),
+    additionalImages: z.array(z.unknown()).optional().catch(undefined),
+  }).optional().catch(undefined),
   localizedAspects: z.array(z.unknown()).optional().catch(undefined),
 });
 export function mapItem(input: unknown, options: { detail?: boolean } = {}): ProviderProduct | null {
@@ -180,7 +187,8 @@ export function mapItem(input: unknown, options: { detail?: boolean } = {}): Pro
     const shippingOptions = item.shippingOptions?.map(option => ({ ...option,
       shippingCost: option.shippingCost ? { amount: minorUnits(option.shippingCost.value, option.shippingCost.currency), currencyCode: option.shippingCost.currency } : undefined,
     }));
-    const images = detail ? imageUrls(item.image?.imageUrl, item.additionalImages) : [];
+    const images = detail ? imageUrls(item.image?.imageUrl, item.additionalImages,
+      item.product?.image, item.product?.additionalImages) : [];
     const detailAspects = detail ? uniqueAspects(aspects) : [];
     const description = detail ? plainText(item.description) ?? plainText(item.shortDescription) : undefined;
     // Seller username is intentionally NOT retained: compliance has no account mapping.

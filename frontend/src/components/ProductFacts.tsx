@@ -1,5 +1,6 @@
 'use client';
 
+import { ProductDescription } from './ProductDescription';
 import { knownText, productAspectFacts, productSpecifications } from '@/lib/product-presentation';
 import { useI18n } from '@/i18n/I18nContext';
 import type { ProductWithOffers } from '@/types';
@@ -29,9 +30,16 @@ export function ProductFacts({ product }: { product: ProductWithOffers }) {
   }
   const description = knownText(product.description);
   if (!facts.length && !description) return null;
-  return <section className="product-facts-panel" aria-labelledby="product-about">
-    <h2 id="product-about">{t('product.p1.about')}</h2>
-    {description && <p className="product-description">{description}</p>}
-    {facts.length > 0 && <dl className="product-facts-grid">{facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>}
-  </section>;
+
+  return <>
+    {description && <section className="product-facts-panel product-about" aria-labelledby="product-about-title">
+      <h2 id="product-about-title">{t('product.p1.about')}</h2>
+      <ProductDescription text={description} />
+    </section>}
+    {facts.length > 0 && <section className="product-facts-panel product-specifications" aria-labelledby="product-specifications-title">
+      <h2 id="product-specifications-title">{t('product.p1.specifications')}</h2>
+      <dl className="product-facts-grid">{facts.map(([label, value], index) =>
+        <div key={`${label}-${index}`}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+    </section>}
+  </>;
 }

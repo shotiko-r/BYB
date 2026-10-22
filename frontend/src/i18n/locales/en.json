@@ -232,7 +232,10 @@
     "market": "Market",
     "language": "Language",
     "selectMarket": "Select market",
-    "selectLanguage": "Select language"
+    "selectLanguage": "Select language",
+    "search": "Search BYB",
+    "navigation": "Main navigation",
+    "openMenu": "Open navigation menu"
   },
   "search": {
     "filters": "Search filters",
@@ -349,7 +352,13 @@
       "capacity": "Capacity",
       "connectivity": "Connectivity",
       "gallery": "Product images",
-      "showImage": "Show image {{index}} of {{total}}"
+      "showImage": "Show image {{index}} of {{total}}",
+      "previousImage": "Previous image",
+      "nextImage": "Next image",
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "specifications": "Specifications",
+      "shippingDelivery": "Shipping & delivery"
     },
     "comparePrices": "Compare Prices",
     "merchantOffers": "{{count}} merchant offers available",

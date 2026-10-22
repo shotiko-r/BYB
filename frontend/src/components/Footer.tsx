@@ -8,12 +8,12 @@ export function Footer() {
   return (
     <footer className="byb-footer mt-auto">
       <div className="byb-container py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="col-span-2 md:col-span-1">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-3">
+          <div className="col-span-2 md:col-span-2">
             <Link href="/" className="flex items-center gap-2" aria-label="BYB Home">
               <Logo />
             </Link>
-            <p className="mt-4 text-sm text-gray-600 max-w-xs">
+            <p className="mt-4 text-sm text-gray-600 max-w-sm">
               {t('footer.tagline')}
             </p>
           </div>
@@ -24,26 +24,6 @@ export function Footer() {
               <li><Link href="/search" className="hover:text-blue-600 transition-colors">{t('footer.links.search')}</Link></li>
               <li><Link href="/#explore" className="hover:text-blue-600 transition-colors">{t('footer.links.categories')}</Link></li>
               <li><Link href="/search?q=headphones&sort=newest" className="hover:text-blue-600 transition-colors">{t('homepage.sections.newOnByb')}</Link></li>
-            </ul>
-          </nav>
-
-          <nav aria-label={t('footer.company')}>
-            <h3 className="font-semibold text-gray-900 mb-4">{t('footer.company')}</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link href="/about" className="hover:text-blue-600 transition-colors">{t('footer.links.about')}</Link></li>
-              <li><Link href="/blog" className="hover:text-blue-600 transition-colors">{t('footer.links.blog')}</Link></li>
-              <li><Link href="/careers" className="hover:text-blue-600 transition-colors">{t('footer.links.careers')}</Link></li>
-              <li><Link href="/press" className="hover:text-blue-600 transition-colors">{t('footer.links.press')}</Link></li>
-            </ul>
-          </nav>
-
-          <nav aria-label={t('footer.legal')}>
-            <h3 className="font-semibold text-gray-900 mb-4">{t('footer.legal')}</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link href="/privacy" className="hover:text-blue-600 transition-colors">{t('footer.links.privacy')}</Link></li>
-              <li><Link href="/terms" className="hover:text-blue-600 transition-colors">{t('footer.links.terms')}</Link></li>
-              <li><Link href="/cookies" className="hover:text-blue-600 transition-colors">{t('footer.links.cookies')}</Link></li>
-              <li><Link href="/affiliate" className="hover:text-blue-600 transition-colors">{t('footer.links.affiliate')}</Link></li>
             </ul>
           </nav>
         </div>

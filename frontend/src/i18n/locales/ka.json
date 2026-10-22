@@ -207,7 +207,10 @@
     "market": "ბაზარი",
     "language": "ენა",
     "selectMarket": "ბაზარის არჩევა",
-    "selectLanguage": "ენის არჩევა"
+    "selectLanguage": "ენის არჩევა",
+    "search": "ძიება BYB-ში",
+    "navigation": "მთავარი ნავიგაცია",
+    "openMenu": "ნავიგაციის მენიუს გახსნა"
   },
   "search": {
     "filters": "ძიების ფილტრები",
@@ -274,7 +277,13 @@
       "capacity": "მოცულობა",
       "connectivity": "კავშირი",
       "gallery": "პროდუქტის სურათები",
-      "showImage": "სურათის ჩვენება {{index}} / {{total}}"
+      "showImage": "სურათის ჩვენება {{index}} / {{total}}",
+      "previousImage": "წინა სურათი",
+      "nextImage": "შემდეგი სურათი",
+      "showMore": "მეტის ჩვენება",
+      "showLess": "ნაკლების ჩვენება",
+      "specifications": "სპეციფიკაცია",
+      "shippingDelivery": "მიწოდება და მიტანა"
     },
     "comparePrices": "ფასების შედარება",
     "merchantOffers": "{{count}} მერჩანტის შეთავაზება",

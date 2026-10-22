@@ -166,6 +166,50 @@ describe('detail mapping', () => {
     }
   });
 
+  it('preserves eBay CDN image order, subdomains and queries while rejecting lookalike or fragment URLs', () => {
+    const mapped = mapItem({ ...detailFixture, additionalImages: [
+      { imageUrl: 'https://i.ebayimg.com/images/second.jpg' },
+      { imageUrl: 'https://thumbs.ebaystatic.com/images/third.jpg?set_id=8800005007' },
+      { imageUrl: 'https://ebayimg.com/images/fourth.jpg' },
+      { imageUrl: 'https://i.ebayimg.com/images/fragment.jpg#private' },
+      { imageUrl: 'https://i.ebayimg.com.attacker.invalid/images/fifth.jpg' },
+    ] }, { detail: true })!;
+    expect(mapped.attributes!.images).toEqual([
+      fixture.image.imageUrl,
+      'https://i.ebayimg.com/images/second.jpg',
+      'https://thumbs.ebaystatic.com/images/third.jpg?set_id=8800005007',
+      'https://ebayimg.com/images/fourth.jpg',
+    ]);
+  });
+
+  it('falls back to product image containers when seller images are absent', () => {
+    const mapped = mapItem({ ...detailFixture, image: undefined, additionalImages: undefined,
+      product: { image: { imageUrl: 'https://i.ebayimg.com/images/catalog.jpg' },
+        additionalImages: [{ imageUrl: 'https://i.ebayimg.com/images/catalog-extra.jpg' }, { imageUrl: 42 }] },
+    }, { detail: true })!;
+    expect(mapped.imageUrl).toBe('https://i.ebayimg.com/images/catalog.jpg');
+    expect(mapped.attributes!.images).toEqual(['https://i.ebayimg.com/images/catalog.jpg',
+      'https://i.ebayimg.com/images/catalog-extra.jpg']);
+  });
+
+  it('keeps seller images ahead of product containers and tolerates malformed product data', () => {
+    const mapped = mapItem({ ...detailFixture,
+      additionalImages: [{ imageUrl: 'https://i.ebayimg.com/images/seller.jpg' }],
+      product: { image: 'https://i.ebayimg.com/images/catalog-primary.jpg',
+        additionalImages: [{ imageUrl: 'https://i.ebayimg.com/images/seller.jpg' },
+          { imageUrl: 'https://i.ebayimg.com/images/catalog-extra.jpg' }] },
+    }, { detail: true })!;
+    expect(mapped.attributes!.images).toEqual([fixture.image.imageUrl, 'https://i.ebayimg.com/images/seller.jpg',
+      'https://i.ebayimg.com/images/catalog-primary.jpg', 'https://i.ebayimg.com/images/catalog-extra.jpg']);
+    for (const product of [null, 'invalid', [], { additionalImages: 'invalid' }]) {
+      expect(mapItem({ ...detailFixture, product }, { detail: true })!.attributes!.images)
+        .toEqual([fixture.image.imageUrl, 'https://i.ebayimg.com/images/second.jpg']);
+    }
+    expect(mapItem({ ...detailFixture,
+      product: { image: 'https://i.ebayimg.com/images/catalog-primary.jpg', additionalImages: 'invalid' },
+    }, { detail: true })!.attributes!.images).toContain('https://i.ebayimg.com/images/catalog-primary.jpg');
+  });
+
   it('caps images and aspects', () => {
     const mapped = mapItem({ ...detailFixture,
       additionalImages: Array.from({ length: 20 }, (_, index) => ({ imageUrl: `https://i.ebayimg.com/images/${index}.jpg` })),
@@ -258,16 +302,20 @@ describe('mapping and provider', () => {
     expect(http.mock.calls.filter(([url]) => String(url).includes('/item/'))).toHaveLength(5);
     expect(result.products.every(product => !product.attributes!.features || (product.attributes!.features as string[]).length === 0)).toBe(true);
   });
-  it('uses detail mapping for getProduct without changing search calls', async () => {
+  it('requests product field groups and uses detail mapping for getProduct without changing search calls', async () => {
     const http = network();
     http.mockResolvedValueOnce(Response.json({ access_token: 'fixture-token', expires_in: 3600 }))
       .mockResolvedValueOnce(Response.json({ ...fixture, description: '<p>Detail only</p>',
-        additionalImages: [{ imageUrl: 'https://i.ebayimg.com/images/second.jpg' }] }));
+        additionalImages: [{ imageUrl: 'https://i.ebayimg.com/images/second.jpg' }],
+        product: { image: { imageUrl: 'https://i.ebayimg.com/images/catalog.jpg' },
+          additionalImages: [{ imageUrl: 'https://i.ebayimg.com/images/catalog-extra.jpg' }] } }));
     const provider = new EbayProvider(client(http));
     const detail = await provider.getProduct(fixture.itemId, 'GE');
     expect(detail!.description).toBe('Detail only');
-    expect(detail!.attributes!.images).toEqual([fixture.image.imageUrl, 'https://i.ebayimg.com/images/second.jpg']);
+    expect(detail!.attributes!.images).toEqual([fixture.image.imageUrl, 'https://i.ebayimg.com/images/second.jpg',
+      'https://i.ebayimg.com/images/catalog.jpg', 'https://i.ebayimg.com/images/catalog-extra.jpg']);
     expect(http.mock.calls.filter(([url]) => String(url).includes('/item/'))).toHaveLength(1);
+    expect(new URL(String(http.mock.calls[1]![0])).searchParams.get('fieldgroups')).toBe('PRODUCT');
   });
   it('gets a listing by safely encoded identity and returns null on 404', async () => {
     const http = network();

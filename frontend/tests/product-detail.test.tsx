@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { I18nProvider } from '../src/i18n/I18nContext';
 import { ProductDetailContent } from '../src/components/ProductDetailContent';
+import { galleryImage, gallerySelection } from '../src/components/ProductGallery';
 import { OfferShipping } from '../src/components/OfferShipping';
 import { shippingFacts } from '../src/lib/shipping-presentation';
 import type { ProductWithOffers, Market } from '../src/types';
@@ -45,11 +46,35 @@ test('multiple images render a deduplicated gallery with accessible thumbnails',
   ];
   const html = render(<ProductDetailContent product={item} market={market} />);
   assert.ok(html.includes('aria-label="Product images"'));
+  assert.ok(html.includes('aria-label="Previous image"'));
+  assert.ok(html.includes('aria-label="Next image"'));
+  assert.ok(html.includes('1 / 2'));
   assert.ok(html.includes('Show image 1 of 2'));
   assert.ok(html.includes('Show image 2 of 2'));
   assert.equal((html.match(/aria-pressed="true"/g) || []).length, 1);
   assert.equal((html.match(/second\.jpg/g) || []).length, 1);
   assert.ok(!html.includes('insecure.jpg'));
+});
+
+test('a single image renders no gallery controls or counters', () => {
+  const item = product();
+  item.imageUrl = 'https://i.ebayimg.com/images/only.jpg';
+  const html = render(<ProductDetailContent product={item} market={market} />);
+  assert.ok(html.includes('only.jpg'));
+  assert.ok(!html.includes('aria-label="Product images"'));
+  assert.ok(!html.includes('aria-label="Previous image"'));
+  assert.ok(!html.includes('aria-label="Next image"'));
+  assert.ok(!html.includes('product-gallery-counter'));
+  assert.ok(!html.includes('Show image'));
+});
+
+test('gallery selection wraps and recovers from stale selections', () => {
+  const images = ['https://i.ebayimg.com/images/one.jpg', 'https://i.ebayimg.com/images/two.jpg', 'https://i.ebayimg.com/images/three.jpg'];
+  assert.deepEqual(galleryImage(images, images[2]!), { src: images[2], index: 2 });
+  assert.deepEqual(galleryImage(images, 'https://i.ebayimg.com/images/stale.jpg'), { src: images[0], index: 0 });
+  assert.equal(gallerySelection(images, images[0]!, -1), images[2]);
+  assert.equal(gallerySelection(images, images[2]!, 1), images[0]);
+  assert.equal(gallerySelection([], null, 1), null);
 });
 
 test('no images keeps the existing product image fallback', () => {
@@ -83,6 +108,17 @@ test('structured aspects are capped at twelve UI facts', () => {
   const html = render(<ProductDetailContent product={item} market={market} />);
   assert.ok(html.includes('Aspect 11'));
   assert.ok(!html.includes('Aspect 12'));
+});
+
+test('about and specifications are separate sections with readable hierarchy', () => {
+  const item = product();
+  item.description = 'OVERVIEW\n\nWireless over-ear headphones with active noise cancellation.\n\nSpecifications:\n- Bluetooth 5.3\n- 30 hour battery';
+  const html = render(<ProductDetailContent product={item} market={market} />);
+  assert.ok(html.indexOf('id="product-about-title"') < html.indexOf('id="product-specifications-title"'));
+  assert.ok(html.includes('Wireless over-ear headphones'));
+  assert.ok(html.includes('<h3>Specifications:</h3>'));
+  assert.ok(html.includes('<li>Bluetooth 5.3</li>'));
+  assert.ok(!html.includes('<p>Specifications:</p>'));
 });
 
 test('description renders as escaped text, never raw HTML', () => {

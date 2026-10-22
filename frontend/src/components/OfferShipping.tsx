@@ -13,6 +13,7 @@ export function OfferShipping({ offer }: { offer: Offer }) {
   let destination = facts.destination;
   if (destination) { try { destination = new Intl.DisplayNames([locale], { type: 'region' }).of(destination); } catch { /* Use explicit country code. */ } }
   return <div className="offer-shipping">
+    <h3 className="offer-shipping-title">{t('product.p1.shippingDelivery')}</h3>
     <dl className="purchase-facts">
       {facts.cost && <div><dt>{t('product.p1.shipping')}</dt><dd>{facts.cost.amount === 0 ? t('product.shipping.free') : formatMoney(facts.cost.amount, facts.cost.currencyCode)}</dd></div>}
       {facts.service && <div><dt>{t('product.p1.service')}</dt><dd>{facts.service}</dd></div>}

@@ -41,7 +41,10 @@ export class EbayProvider implements ProductProvider {
   async getProduct(externalId: string, marketCode: string): Promise<ProviderProduct | null> {
     const marketplace = MARKETPLACES[marketCode];
     if (!marketplace) throw new EbayError('request');
-    try { return mapItem(await this.client.get(`/item/${encodeURIComponent(externalId)}`, marketplace), { detail: true }); }
+    try {
+      const item = await this.client.get(`/item/${encodeURIComponent(externalId)}`, marketplace, { fieldgroups: 'PRODUCT' });
+      return mapItem(item, { detail: true });
+    }
     catch (error) { if (error instanceof EbayError && error.status === 404) return null; throw error; }
   }
 }
