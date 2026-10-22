@@ -1,6 +1,6 @@
 // Curated entry queries, not claims about backend taxonomy or inventory coverage.
 export const homepageCategories = [
-  { id: 'electronics', query: 'electronics', path: 'M5 4h14v11H5z M9 20h6 M12 15v5' },
+  { id: 'electronics', query: 'headphones', path: 'M5 4h14v11H5z M9 20h6 M12 15v5' },
   { id: 'auto', query: 'car parts', path: 'M4 15V9l3-5h10l3 5v6 M4 10h16 M6 15v4 M18 15v4 M7 13h1 M16 13h1' },
   { id: 'home', query: 'kitchen', path: 'M3 11l9-8 9 8 M6 9v12h12V9 M10 21v-7h4v7' },
   { id: 'fashion', query: 'clothing', path: 'm8 3-5 4 3 4 2-2v12h8V9l2 2 3-4-5-4 M8 3c0 5 8 5 8 0' },

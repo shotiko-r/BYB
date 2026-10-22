@@ -1,4 +1,5 @@
 import React from 'react';
+import { getAllMockProducts } from '../../backend/src/modules/provider/mock/mock-data';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -7,6 +8,7 @@ import { Hero } from '../src/components/Hero';
 import { DiscoveryShelf, SHELF_INTERVAL_MS } from '../src/components/DiscoveryShelf';
 import { I18nProvider } from '../src/i18n/I18nContext';
 import { homepageCategories, categorySearchHref } from '../src/lib/homepage-categories';
+import { requestForState, searchState } from '../src/lib/search-presentation';
 import { readInterests, rememberInterest, clearInterests } from '../src/lib/local-interests';
 
 const render = (view: React.ReactNode) => renderToStaticMarkup(<I18nProvider>{view}</I18nProvider>);
@@ -64,5 +66,22 @@ test('device-only interests deduplicate, expire, bound storage, clear, and toler
   } finally {
     if (previous) Object.defineProperty(globalThis, 'localStorage', previous);
     else Reflect.deleteProperty(globalThis, 'localStorage');
+  }
+});
+
+
+test('Electronics opens the catalog-backed headphones query without an invented category filter', () => {
+  for (const market of ['GE', 'AM', 'AZ']) {
+    const url = new URL(categorySearchHref('electronics', market), 'https://byb.example.test');
+    const request = requestForState(searchState(Object.fromEntries(url.searchParams)));
+    assert.equal(request?.q, 'headphones');
+    assert.equal(request?.market, market);
+    assert.equal(request?.category, undefined);
+    // Existing seeded/demo catalog evidence, not an invented broad category match.
+    const matches = getAllMockProducts().filter(product => product.name.toLowerCase().includes(request!.q.toLowerCase()));
+    assert.ok(matches.length > 0, 'Electronics query must match existing electronics fixtures');
+    assert.ok(matches.every(product => product.category === 'headphones'));
+    const html = render(<ExploreSection market={market} />);
+    assert.ok(html.includes(`q=headphones&amp;market=${market}`));
   }
 });
