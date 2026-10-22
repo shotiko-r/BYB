@@ -230,7 +230,7 @@ test('homepage calls combined discovery instead of keyword searches; client send
 
 test('homepage initial state renders section skeletons', () => {
   const html = renderView(<HomePage />);
-  assert.equal((html.match(/role="status"/g) || []).length, 5);
+  assert.equal((html.match(/role="status" aria-label=/g) || []).length, 5);
   assert.ok(html.includes('animate-pulse'));
   assert.ok(!html.includes('No matching listings available.'));
 });

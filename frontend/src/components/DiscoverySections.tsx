@@ -1,5 +1,6 @@
 'use client';
 
+import { DiscoveryShelf } from './DiscoveryShelf';
 import { ProductImage } from './ProductImage';
 import { merchantName } from '@/lib/merchant';
 import { formatMoney } from '@/lib/offer-prices';
@@ -64,7 +65,7 @@ export function DiscoverySections(props: DiscoverySectionsProps) {
   const { t } = useI18n();
 
   return (
-    <div className="discovery">
+    <div className="discovery discovery-v2" id="discovery">
       {homepageSections.map((section, index) => {
         const { key } = section;
         const products = props.productsBySection[key] ?? [];
@@ -97,8 +98,8 @@ export function DiscoverySections(props: DiscoverySectionsProps) {
                   {props.onRetry && <button type="button" className="btn-secondary mt-3" onClick={props.onRetry}>{t('common.retry')}</button>}
                 </div>
               ) : products.length ? (
-                <div className="decision-grid">
-                  {products.slice(0, 4).map(product => (
+                <DiscoveryShelf key={`${key}-${props.market.code}`} label={t(section.titleKey)} autoRotate={index === 0}>
+                  {products.map(product => (
                     <DecisionCard
                       key={product.id}
                       product={product}
@@ -106,7 +107,7 @@ export function DiscoverySections(props: DiscoverySectionsProps) {
                       onProductClick={props.onProductClick}
                     />
                   ))}
-                </div>
+                </DiscoveryShelf>
               ) : <p className="discovery-empty">{t('homepage.discovery.empty')}</p>}
             </div>
           </section>

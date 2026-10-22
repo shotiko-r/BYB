@@ -1,6 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { ConciergeSearch } from '@/components/ConciergeSearch';
+import { HomeBrowsingMemory } from '@/components/HomeBrowsingMemory';
+import { rememberInterest } from '@/lib/local-interests';
+import { useI18n } from '@/i18n/I18nContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Hero } from '@/components/Hero';
@@ -17,6 +22,8 @@ const MOCK_MARKETS: Market[] = [
 ];
 
 export default function HomePage() {
+  const router = useRouter();
+  const { t } = useI18n();
   const [markets] = useState<Market[]>(MOCK_MARKETS);
   const [selectedMarket, setSelectedMarket] = useState<Market>(MOCK_MARKETS[0]);
   const [productsBySection, setProductsBySection] = useState<Record<string, ProductWithOffers[]>>({});
@@ -47,12 +54,9 @@ export default function HomePage() {
     return () => controller.abort();
   }, [selectedMarket.code, retryCount]);
 
-  const handleSearch = (query: string) => {
-    window.location.href = `/search?q=${encodeURIComponent(query)}&market=${selectedMarket.code}`;
-  };
-
   const handleProductClick = (product: ProductWithOffers) => {
-    window.location.href = `/product/${product.id}?market=${selectedMarket.code}`;
+    rememberInterest({ kind: 'product', id: product.id, market: selectedMarket.code });
+    router.push(`/product/${product.id}?market=${selectedMarket.code}`);
   };
 
   const handleMarketChange = (market: Market) => {
@@ -63,8 +67,8 @@ export default function HomePage() {
     <div className="byb-home flex flex-col min-h-screen">
       <Header markets={markets} selectedMarket={selectedMarket} onMarketChange={handleMarketChange} />
       <main className="flex-1">
-        <Hero market={selectedMarket} onSearch={handleSearch} />
-        <ExploreSection />
+        <Hero market={selectedMarket} />
+        <ExploreSection market={selectedMarket.code} />
         <DiscoverySections
           productsBySection={productsBySection}
           market={selectedMarket}
@@ -74,6 +78,13 @@ export default function HomePage() {
           unavailableSections={unavailableSections}
           onRetry={() => setRetryCount(count => count + 1)}
         />
+        <section className="home-assistant byb-container">
+          <details>
+            <summary>{t('homepage.h1.assistant')} <span aria-hidden="true">+</span></summary>
+            <ConciergeSearch key={selectedMarket.code} market={selectedMarket} />
+          </details>
+        </section>
+        <HomeBrowsingMemory />
         <MarketSection market={selectedMarket} />
       </main>
       <Footer />

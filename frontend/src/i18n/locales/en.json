@@ -73,6 +73,33 @@
     "reset": "Reset"
   },
   "homepage": {
+    "h1": {
+      "eyebrow": "BEFORE YOU BUY",
+      "title": "Find your next good find.",
+      "description": "Start with what you love. Explore listings from different merchants, all in one place.",
+      "search": "Search BYB",
+      "categories": "Where will you explore?",
+      "categoryHint": "Choose a category to start exploring.",
+      "assistant": "Need a hand choosing? Ask BYB",
+      "memory": "Category and product visits are remembered only on this device for up to 30 days. They do not change these shelves.",
+      "clearMemory": "Clear browsing memory",
+      "memoryCleared": "Browsing memory cleared.",
+      "carousel": "product shelf",
+      "previous": "Previous listings",
+      "next": "Next listings",
+      "pause": "Pause rotation",
+      "play": "Resume rotation",
+      "category": {
+        "electronics": "Electronics",
+        "auto": "Auto / Car Parts",
+        "home": "Home & Kitchen",
+        "fashion": "Fashion",
+        "outdoors": "Sports / Outdoor",
+        "tools": "Tools",
+        "beauty": "Beauty / Personal Care",
+        "kids": "Toys / Kids"
+      }
+    },
     "hero": {
       "title": "BEFORE YOU BUY",
       "subtitle": "Find the right thing, not just a product.",

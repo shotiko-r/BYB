@@ -63,3 +63,25 @@ empty search and retry. Build first with `NEXT_PUBLIC_API_URL=https://api.exampl
 the browser test intercepts that origin without accessing merchants. Set
 `BYB_TEST_CHROME` for another Chrome path and `BYB_TEST_PORT` for another local port.
 No browser dependency is installed and no deployment is performed.
+
+## Homepage H1
+
+The homepage starts with eight curated category entry queries. These link into the
+unchanged search page, preserving the selected market; they do not claim an exact
+backend category mapping. The compact search link remains available above the
+fold, and assisted search remains in an expandable panel below discovery.
+
+The same single discovery/home request supplies all five shelves. Horizontal
+scroll/snap preserves the backend membership and ordering. Only Discover advances
+automatically, every nine seconds. Hover, keyboard focus and a hidden page pause
+it; manual navigation or touch stops it until explicitly resumed. Reduced-motion
+preferences disable autoplay and smooth scrolling. Previous/next controls and
+native touch scrolling remain available. No extra provider/search requests or
+ranking signals are introduced for rotation.
+
+`local-interests.ts` stores at most 12 recent category/product IDs and their market
+and timestamp in `byb-interests-v1` on the current device. Reads expire entries
+after 30 days; there are no free-text queries, prices, backend writes, analytics
+requests or personalized rankings. A clear-memory control removes that key.
+Storage failures do not block navigation. This is a foundation for a later,
+explicit personalization design, not a recommendation engine.
