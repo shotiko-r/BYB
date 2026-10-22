@@ -1,12 +1,9 @@
 'use client';
 
-import { ProductImage } from '@/components/ProductImage';
-import { knownText } from '@/lib/product-presentation';
-import { ProductOfferSummary } from '@/components/ProductOfferSummary';
+import { ProductDetailContent } from '@/components/ProductDetailContent';
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { ProductComparison } from '@/components/ProductComparison';
 import { api } from '@/lib/api';
 import { useI18n } from '@/i18n/I18nContext';
 import type { Market, ProductWithOffers } from '@/types';
@@ -75,7 +72,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4" />
-            <p className="text-gray-600">{t('common.loading')}</p>
+            <p className="product-state-copy">{t('common.loading')}</p>
           </div>
         </main>
         <Footer />
@@ -92,7 +89,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
             <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('product.productNotFound')}</h1>
+            <h1 className="text-2xl font-bold mb-2">{t('product.productNotFound')}</h1>
             <p className="text-gray-600 mb-6">{error}</p>
             <a href={`/search?market=${selectedMarket.code}`} className="btn-primary">
               {t('common.backToSearch')}
@@ -104,47 +101,10 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
     );
   }
 
-  const brand = knownText(product.brand);
-  const model = knownText(product.model);
-
   return (
     <div className="flex flex-col min-h-screen">
       <Header markets={markets} selectedMarket={selectedMarket} onMarketChange={handleMarketChange} />
-      <main className="flex-1 py-8">
-        <div className="container">
-          <nav className="mb-6 text-sm text-gray-500" aria-label="Breadcrumb">
-            <ol className="flex items-center gap-2">
-              <li><a href={`/?market=${selectedMarket.code}`} className="hover:text-blue-600">{t('product.breadcrumb.home')}</a></li>
-              <li className="text-gray-300">/</li>
-              <li><a href={`/search?market=${selectedMarket.code}`} className="hover:text-blue-600">{t('product.breadcrumb.search')}</a></li>
-              <li className="text-gray-300">/</li>
-              <li className="text-gray-900 font-medium truncate max-w-xs" aria-current="page">{product.name}</li>
-            </ol>
-          </nav>
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 min-w-0 space-y-6">
-              <article>
-                <header className="mb-6">
-                  {brand && <p className="text-sm text-gray-500 mb-1">{brand}</p>}
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2 break-words">{product.name}</h1>
-                  {model && <p className="text-gray-600">{t('product.model', { model })}</p>}
-                </header>
-
-                <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden mb-6">
-                  <ProductImage src={product.imageUrl} alt={product.name} priority sizes="(max-width: 1024px) 100vw, 66vw" />
-                </div>
-
-                <ProductComparison product={product} market={selectedMarket} />
-              </article>
-            </div>
-
-            <aside className="lg:col-span-1">
-              <ProductOfferSummary product={product} />
-            </aside>
-          </div>
-        </div>
-      </main>
+      <ProductDetailContent product={product} market={selectedMarket} />
       <Footer />
     </div>
   );

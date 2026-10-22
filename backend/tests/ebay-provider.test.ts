@@ -120,6 +120,23 @@ describe('mapping and provider', () => {
     expect(JSON.stringify(result)).not.toContain(fixture.seller.username);
     expect(result.brand).toBeUndefined(); expect(result.model).toBeUndefined();
   });
+  it('preserves source delivery estimates and service without assuming destination from marketplace', () => {
+    const shippingOptions = [{ shippingCost: { value: '8.95', currency: 'USD' }, shippingCostType: 'FIXED',
+      type: 'Standard Shipping', shippingServiceCode: 'USPS Priority Mail', shippingCarrierCode: 'USPS',
+      minEstimatedDeliveryDate: '2030-10-28T00:00:00Z', maxEstimatedDeliveryDate: '2030-11-04T00:00:00Z',
+      shipToLocationUsedForEstimate: { country: 'US', postalCode: 'private-postcode' } }];
+    const mapped = mapItem({ ...fixture, shippingOptions })!;
+    expect(mapped.shippingInfo).toEqual({ options: [{ ...shippingOptions[0],
+      shippingCost: { amount: 895, currencyCode: 'USD' }, shipToLocationUsedForEstimate: { country: 'US' } }] });
+    expect(JSON.stringify(mapped.shippingInfo)).not.toContain('private-postcode');
+    const noDestination = mapItem({ ...fixture, shippingOptions: [{ minEstimatedDeliveryDate: '2030-10-28T00:00:00Z' }] })!;
+    expect(noDestination.shippingInfo).toEqual({ options: [{ minEstimatedDeliveryDate: '2030-10-28T00:00:00Z' }] });
+  });
+  it('ignores malformed optional delivery dates without losing the listing', () => {
+    const mapped = mapItem({ ...fixture, shippingOptions: [{ maxEstimatedDeliveryDate: 'not-a-date' }] })!;
+    expect(mapped).not.toBeNull();
+    expect(mapped.shippingInfo).toEqual({ options: [{ maxEstimatedDeliveryDate: undefined }] });
+  });
   it.each([['159.99', 'USD', 15999], ['139.49', 'USD', 13949], ['100', 'JPY', 100]])('parses %s %s exactly', (value, currency, expected) => {
     expect(minorUnits(value, currency)).toBe(expected);
   });

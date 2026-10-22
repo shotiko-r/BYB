@@ -29,7 +29,12 @@ const itemSchema = z.object({
   seller: z.object({ feedbackPercentage: z.string().optional(), feedbackScore: z.number().optional() }).optional(),
   itemLocation: z.object({ country: z.string().optional() }).optional(),
   shippingOptions: z.array(z.object({ shippingCost: z.object({ value: z.string(), currency: z.string() }).optional(),
-    shippingCostType: z.string().optional(), type: z.string().optional() })).optional(),
+    shippingCostType: z.string().optional(), type: z.string().optional(),
+    shippingServiceCode: z.string().optional().catch(undefined), shippingCarrierCode: z.string().optional().catch(undefined),
+    minEstimatedDeliveryDate: z.string().datetime({ offset: true }).optional().catch(undefined),
+    maxEstimatedDeliveryDate: z.string().datetime({ offset: true }).optional().catch(undefined),
+    shipToLocationUsedForEstimate: z.object({ country: z.string().regex(/^[A-Z]{2}$/).optional() }).optional().catch(undefined),
+  })).optional(),
   localizedAspects: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
 });
 export function mapItem(input: unknown): ProviderProduct | null {

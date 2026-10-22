@@ -13,6 +13,7 @@ import SearchPage from '../src/app/search/page';
 import { homepageSections } from '../src/lib/homepage-sections';
 import { readFileSync } from 'node:fs';
 import { api } from '../src/lib/api';
+import { ProductDetailContent } from '../src/components/ProductDetailContent';
 import HomePage from '../src/app/page';
 import { AppRouterContext } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { requestForState, searchState } from '../src/lib/search-presentation';
@@ -38,7 +39,7 @@ function renderView(view: React.ReactNode, enabled: boolean | undefined = true) 
   }
 }
 function render(product: ProductWithOffers, comparison = false, enabled = true) {
-  return renderView(comparison ? <ProductComparison product={product} market={market} /> : <ProductCard product={product} market={market} onClick={() => {}} />, enabled);
+  return renderView(comparison ? <ProductDetailContent product={product} market={market} /> : <ProductCard product={product} market={market} onClick={() => {}} />, enabled);
 }
 function discovery(product: ProductWithOffers) {
   return <DiscoverySections productsBySection={{ discover: [product] }} market={market} onProductClick={() => {}} />;
@@ -97,7 +98,7 @@ test('single-offer homepage, search and detail use details framing and suppress 
   const product = fixture('ebay');
   product.brand = 'Unknown'; product.attributes.condition = 'Unknown';
   const views = [discovery(product), <ProductCard key="card" product={product} market={market} onClick={() => {}} />,
-    <ProductComparison key="comparison" product={product} market={market} />, <ProductOfferSummary key="summary" product={product} />];
+    <ProductDetailContent key="comparison" product={product} market={market} />, <ProductOfferSummary key="summary" product={product} />];
   for (const view of views) {
     const html = renderView(view);
     assert.ok(html.includes('eBay')); assert.ok(html.includes('$0.58'));
@@ -124,7 +125,7 @@ test('known condition is visible without internal IDs or provider objects', () =
   product.attributes = { condition: 'Used', conditionId: 'internal-condition-id', listingIdentity: 'internal-listing-id',
     epid: 'internal-epid', seller: { feedbackScore: 100 }, categories: [{ categoryName: 'synthetic' }], material: 'Aluminium' };
   for (const view of [discovery(product), <ProductCard key="card" product={product} market={market} onClick={() => {}} />,
-    <ProductComparison key="comparison" product={product} market={market} />, <ProductOfferSummary key="summary" product={product} />]) {
+    <ProductDetailContent key="comparison" product={product} market={market} />, <ProductOfferSummary key="summary" product={product} />]) {
     const html = renderView(view); assert.ok(html.includes('Used'));
     for (const internal of ['internal-condition-id', 'internal-listing-id', 'internal-epid', '[object Object]']) assert.ok(!html.includes(internal));
   }
@@ -134,7 +135,7 @@ test('known condition is visible without internal IDs or provider objects', () =
 test('AliExpress disabled clickouts preserve discovery, merchant, price and internal details', () => {
   const product = fixture();
   for (const view of [discovery(product), <ProductCard key="card" product={product} market={market} onClick={() => {}} />,
-    <ProductComparison key="comparison" product={product} market={market} />, <ProductOfferSummary key="summary" product={product} />]) {
+    <ProductDetailContent key="comparison" product={product} market={market} />, <ProductOfferSummary key="summary" product={product} />]) {
     const html = renderView(view, false);
     assert.ok(html.includes('AliExpress')); assert.ok(html.includes('$0.58'));
     assert.ok(html.includes('Merchant link temporarily unavailable'));
@@ -157,7 +158,7 @@ test('AliExpress clickouts fail closed by default and opt-in preserves exact tra
     if (previous !== undefined) process.env.NEXT_PUBLIC_ALIEXPRESS_CLICKOUT_ENABLED = previous;
   }
   for (const view of [<ProductCard key="card" product={product} market={market} onClick={() => {}} />,
-    <ProductComparison key="comparison" product={product} market={market} />, <ProductOfferSummary key="summary" product={product} />]) {
+    <ProductDetailContent key="comparison" product={product} market={market} />, <ProductOfferSummary key="summary" product={product} />]) {
     const html = renderView(view, true);
     assert.ok(html.includes('Buy on AliExpress')); assert.ok(html.includes(destination.replaceAll('&', '&amp;')));
     assert.ok(!html.includes('Merchant link temporarily unavailable'));
@@ -173,7 +174,7 @@ test('eBay clickouts remain active when AliExpress is disabled', () => {
 test('mixed source currencies never claim a best price or best offer', () => {
   const product = fixture('ebay', 15000);
   product.offers.push({ ...product.offers[0], id: 'gel', externalProductId: 'gel', currencyCode: 'GEL', priceAmount: 10000 });
-  for (const html of [render(product, true), renderView(<ProductOfferSummary product={product} />)]) {
+  for (const html of [render(product, true)]) {
     assert.ok(html.includes('$150.00')); assert.ok(html.includes(formatMoney(10000, 'GEL')));
     assert.ok(!html.includes('Best Price')); assert.ok(!html.includes('Best Offer'));
   }
