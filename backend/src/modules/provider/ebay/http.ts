@@ -4,7 +4,7 @@ export type EbayErrorCode = 'auth' | 'rate_limit' | 'request' | 'upstream' | 'ne
 export class EbayError extends Error {
   constructor(readonly code: EbayErrorCode, readonly status?: number) { super(`eBay ${code} failure`); }
 }
-export async function ebayJson(transport: typeof fetch, url: string, init: RequestInit, timeoutMs = 5000): Promise<unknown> {
+export async function ebayJson(transport: typeof fetch, url: string, init: RequestInit, timeoutMs = 5000, maxResponseBytes = 1048576): Promise<unknown> {
   try {
     const response = await transport(url, { ...init, signal: AbortSignal.timeout(timeoutMs), redirect: 'error' });
     if (!response.ok) {
@@ -21,7 +21,7 @@ export async function ebayJson(transport: typeof fetch, url: string, init: Reque
         const { done, value } = await reader.read(); reading = !done;
         if (!value) continue;
         size += value.byteLength;
-        if (size > 1048576) throw new EbayError('malformed');
+        if (size > maxResponseBytes) throw new EbayError('malformed');
         chunks.push(value);
       }
       try { return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown; }

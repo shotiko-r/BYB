@@ -51,6 +51,18 @@ function cleanAspectText(value: string, maxLength: number): string | undefined {
   const text = stripControlCharacters(value, false, ' ').replace(/\s+/g, ' ').trim();
   return text ? text.slice(0, maxLength).trim() || undefined : undefined;
 }
+// Require an entire, separated paragraph to be a recognized cross-sell heading.
+// Decorative separators occur in seller templates; ordinary sentences remain intact.
+function descriptionBoundary(text: string): string {
+  const heading = /^[ \t·•*=_~\-–—|:]*(?:suggested products|related products|similar products|similar items|you may also like|other items)[ \t·•*=_~\-–—|:]*$/i;
+  const paragraphs = text.split('\n\n');
+  let offset = 0;
+  for (const paragraph of paragraphs) {
+    if (offset > 0 && heading.test(paragraph)) return text.slice(0, offset).trimEnd();
+    offset += paragraph.length + 2;
+  }
+  return text;
+}
 function plainText(value: unknown): string | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined;
   try {
@@ -69,7 +81,8 @@ function plainText(value: unknown): string | undefined {
       ],
       limits: { maxInputLength: MAX_DESCRIPTION_INPUT, ellipsis: '' },
     });
-    return cleanText(text, MAX_DESCRIPTION_LENGTH);
+    const cleaned = cleanText(text, MAX_DESCRIPTION_LENGTH);
+    return cleaned ? descriptionBoundary(cleaned) : undefined;
   } catch { return undefined; }
 }
 function validImageUrl(value: unknown): string | undefined {

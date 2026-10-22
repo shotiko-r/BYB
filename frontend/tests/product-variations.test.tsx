@@ -85,3 +85,46 @@ test('description styles bound desktop/tablet/mobile height and allow vertical k
   assert.ok(html.includes('tabindex="0"'));
   assert.ok(!html.includes('Show more'));
 });
+
+test('P2.2R real four-dimension iPod selects exact current member, price, image and CTA', async () => {
+  const { default: fixture } = await import('../../backend/tests/fixtures/ebay-ipod-variation-group.json');
+  // API-shaped public fixture; backend regression separately checks normalization and transport.
+  const names = ['Generation', 'Color', 'Condition', 'Storage Capacity'];
+  const realGroup: VariationGroup = {
+    dimensions: names.map(name => ({ name, values: [...new Set(fixture.items.map(member => member.localizedAspects.find(aspect => aspect.name === name)!.value))] })),
+    variants: fixture.items.map(member => ({ externalProductId: member.itemId,
+      selections: Object.fromEntries(member.localizedAspects.map(aspect => [aspect.name, aspect.value])),
+      priceAmount: Number(member.price.value.replace('.', '')), currencyCode: member.price.currency,
+      images: [member.image.imageUrl, ...member.additionalImages.map(image => image.imageUrl)],
+      availability: member.estimatedAvailabilities.some(entry => entry.estimatedAvailabilityStatus === 'OUT_OF_STOCK') ? 'out_of_stock' : 'in_stock',
+      destinationUrl: member.itemWebUrl, shippingInfo: {},
+    })),
+  };
+  const item = { ...product, id: 'a76c7409-f577-4cac-a141-d1731991d29f', variationGroup: realGroup,
+    offers: [{ ...product.offers[0], externalProductId: fixture.currentExternalProductId, priceAmount: 14999 }] };
+  const selected = initialSelections(item, realGroup);
+  assert.deepEqual(selected, { Generation: '5th Generation', Color: 'Black', Condition: 'Very Good', 'Storage Capacity': '30 GB' });
+  const html = render(<ProductDetailContent product={item} market={market} />);
+  for (const dimension of ['Generation', 'Color', 'Condition', 'Storage Capacity']) assert.ok(html.includes(`>${dimension}</label>`));
+  for (const value of Object.values(selected)) assert.ok(html.includes(`value="${value}" selected=""`));
+  assert.ok(html.includes('$149.99'));
+  assert.ok(!html.includes('$139.99'));
+  assert.ok(html.includes('var=626788065835'));
+  assert.ok(html.includes(fixture.detail.image.imageUrl));
+  const good = { ...selected, Condition: 'Good' };
+  const displayed = variationProduct(item, realGroup, good);
+  assert.equal(displayed.offers[0].priceAmount, 13999);
+  assert.equal(displayed.offers[0].externalProductId, 'v1|358020906068|626788065832');
+  assert.ok(displayed.offers[0].destinationUrl.includes('var=626788065832'));
+  assert.equal(variationOptionEnabled(realGroup, { ...selected, Color: 'U2 Black' }, 'Condition', 'Good'), false);
+  assert.equal(item.offers[0].priceAmount, 14999);
+});
+
+test('P2.2R sanitized detail keeps actual description and hides decorated seller cross-sell', async () => {
+  const { default: fixture } = await import('../../backend/tests/fixtures/ebay-ipod-variation-group.json');
+  const html = render(<ProductDetailContent product={{ ...product, description: fixture.expectedDescription }} market={market} />);
+  assert.ok(html.includes('These iPods are tested and functional.'));
+  assert.ok(!html.includes('Suggested Products'));
+  assert.ok(!html.includes('Unrelated iPod Nano'));
+  assert.ok(!html.includes('$124.95'));
+});

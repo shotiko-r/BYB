@@ -12,7 +12,9 @@ export class EbayBrowseClient {
       try {
         return await ebayJson(this.transport, url, { headers: {
           Authorization: `Bearer ${token}`, 'X-EBAY-C-MARKETPLACE-ID': marketplace,
-        } }, this.timeoutMs);
+        } }, this.timeoutMs,
+        // Item groups contain many complete Item objects; keep other endpoints at 1 MiB.
+        path === '/item/get_items_by_item_group' ? 2 * 1024 * 1024 : 1024 * 1024);
       } catch (error) {
         if (attempt === 0 && error instanceof EbayError && error.status === 401) {
           this.tokens.invalidate(token); continue;
