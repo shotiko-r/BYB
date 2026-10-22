@@ -1,4 +1,4 @@
-import type { ConciergeRequest, ConciergeResponse } from '@byb/shared';
+import { DiscoveryHomeSchema, SearchOptionsSchema, type ConciergeRequest, type ConciergeResponse } from '@byb/shared';
 import { formatMoney } from './offer-prices';
 import type { SearchResult, ProductWithOffers, Market, Merchant } from '@/types';
 
@@ -41,6 +41,11 @@ export const availabilityLabels = {
 } as const;
 
 export const api = {
+  discovery: {
+    home: async (market: string, signal?: AbortSignal) => DiscoveryHomeSchema.parse(
+      await fetchApi<unknown>(`/api/discovery/home?${toSearchParams({ market })}`, { signal })
+    ),
+  },
   concierge: {
     request: (body: ConciergeRequest, signal?: AbortSignal) => fetchApi<ConciergeResponse>('/api/concierge', {
       method: 'POST', body: JSON.stringify(body), signal,
@@ -57,12 +62,13 @@ export const api = {
   },
 
   search: {
-    products: (params: Record<string, string | number | undefined>) => 
-      fetchApi<SearchResult>(`/api/search?${toSearchParams(params).toString()}`),
-    suggestions: (q: string, market?: string) => {
+    options: async (market: string, signal?: AbortSignal) => SearchOptionsSchema.parse(await fetchApi<unknown>(`/api/search/options?${toSearchParams({ market })}`, { signal })),
+    products: (params: Record<string, string | number | undefined>, signal?: AbortSignal) =>
+      fetchApi<SearchResult>(`/api/search?${toSearchParams(params).toString()}`, { signal }),
+    suggestions: (q: string, market?: string, signal?: AbortSignal) => {
       const params = new URLSearchParams({ q });
       if (market) params.set('market', market);
-      return fetchApi<{ suggestions: string[] }>(`/api/search/suggestions?${params.toString()}`);
+      return fetchApi<{ suggestions: string[] }>(`/api/search/suggestions?${params.toString()}`, { signal });
     },
   },
 

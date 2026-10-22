@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SearchCurrencySchema } from './money';
 
 export const MarketSchema = z.object({
   id: z.string().uuid(),
@@ -95,19 +96,29 @@ export const SearchIntentSchema = z.object({
 export type SearchIntent = z.infer<typeof SearchIntentSchema>;
 
 export const SearchQuerySchema = z.object({
-  currencyCode: z.string().regex(/^[A-Z]{3}$/).optional(),
-  q: z.string().min(1).max(500),
+  currencyCode: SearchCurrencySchema.optional(),
+  currency: SearchCurrencySchema.optional(),
+  merchant: z.union([z.string(), z.array(z.string())]).transform(value =>
+    [...new Set((Array.isArray(value) ? value : [value]).flatMap(part => part.split(',')).map(code => code.trim()).filter(Boolean))].sort()
+  ).pipe(z.array(z.string().regex(/^[a-z0-9][a-z0-9_-]{0,49}$/)).min(1).max(20)).optional(),
+  q: z.string().trim().min(1).max(500),
   market: z.string().length(2).optional(),
   category: z.string().optional(),
-  minPrice: z.coerce.number().int().nonnegative().optional(),
-  maxPrice: z.coerce.number().int().positive().optional(),
+  minPrice: z.coerce.number().int().nonnegative().max(2147483647).optional(),
+  maxPrice: z.coerce.number().int().positive().max(2147483647).optional(),
   brand: z.string().optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
-  sort: z.enum(['relevance', 'price_asc', 'price_desc', 'newest']).default('relevance'),
+  sort: z.enum(['relevance', 'best_match', 'price_asc', 'price_desc', 'newest']).default('relevance'),
 });
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
+export const SearchOptionsSchema = z.object({
+  merchants: z.array(z.object({ code: z.string(), name: z.string() })),
+  categories: z.array(z.object({ id: z.string().uuid(), slug: z.string(), name: z.string(), parentId: z.string().uuid().nullable() })),
+  currencies: z.array(SearchCurrencySchema),
+});
+export type SearchOptions = z.infer<typeof SearchOptionsSchema>;
 
 export const ProductWithOffersSchema = ProductSchema.extend({
   offers: z.array(OfferSchema),
@@ -116,6 +127,38 @@ export const ProductWithOffersSchema = ProductSchema.extend({
 });
 
 export type ProductWithOffers = z.infer<typeof ProductWithOffersSchema>;
+
+export const DISCOVERY_SECTION_KEYS = ['discover', 'new_on_byb', 'under_25_usd', 'under_50_usd', 'more_to_explore'] as const;
+export const DiscoverySectionKeySchema = z.enum(DISCOVERY_SECTION_KEYS);
+export type DiscoverySectionKey = z.infer<typeof DiscoverySectionKeySchema>;
+// Explicit public card shape: no source attributes, feed metadata or shipping guesses.
+export const DiscoveryProductSchema = ProductWithOffersSchema.extend({
+  offerCount: z.number().int().nonnegative(),
+  distinctMerchantCount: z.number().int().nonnegative(),
+  firstSeenAt: z.string().datetime(),
+});
+export type DiscoveryProduct = z.infer<typeof DiscoveryProductSchema>;
+export const DiscoverySectionSchema = z.object({
+  key: DiscoverySectionKeySchema,
+  titleKey: z.string(),
+  status: z.enum(['ok', 'unavailable']),
+  products: z.array(DiscoveryProductSchema),
+});
+export type DiscoverySection = z.infer<typeof DiscoverySectionSchema>;
+export const DiscoveryHomeSchema = z.object({
+  market: z.string().length(2),
+  generatedAt: z.string().datetime(),
+  rotationBucket: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  algorithmVersion: z.string(),
+  sections: z.array(DiscoverySectionSchema),
+});
+export type DiscoveryHome = z.infer<typeof DiscoveryHomeSchema>;
+export const DiscoveryQuerySchema = z.object({
+  market: z.string().regex(/^[a-zA-Z]{2}$/).transform(value => value.toUpperCase()).default('GE'),
+  section: DiscoverySectionKeySchema.default('discover'),
+  limit: z.coerce.number().int().min(1).max(20).default(4),
+  currency: z.string().regex(/^[A-Z]{3}$/).optional(),
+}).strict();
 
 export const SearchResultSchema = z.object({
   products: z.array(ProductWithOffersSchema),

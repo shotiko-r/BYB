@@ -15,8 +15,7 @@ interface HeaderProps {
 }
 
 const navigation = [
-  ['discover', '/search'], ['deals', '/deals'],
-  ['guides', '/guides'], ['categories', '/categories'],
+  ['discover', '/'], ['categories', '/#explore'],
 ] as const;
 
 export function Header({ markets, selectedMarket, onMarketChange }: HeaderProps) {

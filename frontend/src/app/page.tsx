@@ -1,6 +1,5 @@
 'use client';
 
-import { useI18n } from '@/i18n/I18nContext';
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -18,50 +17,35 @@ const MOCK_MARKETS: Market[] = [
 ];
 
 export default function HomePage() {
-  const { t } = useI18n();
   const [markets] = useState<Market[]>(MOCK_MARKETS);
   const [selectedMarket, setSelectedMarket] = useState<Market>(MOCK_MARKETS[0]);
-  const [trendingProducts, setTrendingProducts] = useState<ProductWithOffers[]>([]);
-  const [popularProducts, setPopularProducts] = useState<ProductWithOffers[]>([]);
-  const [dealsProducts, setDealsProducts] = useState<ProductWithOffers[]>([]);
-  const [newProducts, setNewProducts] = useState<ProductWithOffers[]>([]);
-  const [rareProducts, setRareProducts] = useState<ProductWithOffers[]>([]);
+  const [productsBySection, setProductsBySection] = useState<Record<string, ProductWithOffers[]>>({});
+  const [unavailableSections, setUnavailableSections] = useState<string[]>([]);
+  const [retryCount, setRetryCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     async function fetchData() {
+      setLoading(true);
+      setProductsBySection({});
+      setUnavailableSections([]);
+      setError(null);
       try {
-        setLoading(true);
-        const baseParams = {
-          market: selectedMarket.code,
-          limit: 20,
-        };
-
-        const [trending, popular, deals, newest, rare] = await Promise.all([
-          api.search.products({ ...baseParams, q: 'headphones', sort: 'relevance' }),
-          api.search.products({ ...baseParams, q: 'smartphone', sort: 'relevance' }),
-          api.search.products({ ...baseParams, q: 'sony', sort: 'relevance' }),
-          api.search.products({ ...baseParams, q: 'wireless', sort: 'relevance' }),
-          api.search.products({ ...baseParams, q: 'headphone', sort: 'relevance' }),
-        ]);
-
-        setTrendingProducts(trending.products);
-        setPopularProducts(popular.products);
-        setDealsProducts(deals.products.slice(0, 10));
-        setNewProducts(newest.products);
-        setRareProducts(rare.products);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load products. Make sure the backend is running.');
-        console.error(err);
+        const result = await api.discovery.home(selectedMarket.code, controller.signal);
+        if (controller.signal.aborted) return;
+        setProductsBySection(Object.fromEntries(result.sections.map(section => [section.key, section.products])));
+        setUnavailableSections(result.sections.filter(section => section.status === 'unavailable').map(section => section.key));
+      } catch {
+        if (!controller.signal.aborted) setError('discovery');
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
-
-    fetchData();
-  }, [selectedMarket.code]);
+    void fetchData();
+    return () => controller.abort();
+  }, [selectedMarket.code, retryCount]);
 
   const handleSearch = (query: string) => {
     window.location.href = `/search?q=${encodeURIComponent(query)}&market=${selectedMarket.code}`;
@@ -80,21 +64,15 @@ export default function HomePage() {
       <Header markets={markets} selectedMarket={selectedMarket} onMarketChange={handleMarketChange} />
       <main className="flex-1">
         <Hero market={selectedMarket} onSearch={handleSearch} />
-        {error && (
-          <div className="byb-container py-4">
-            <div className="homepage-error" role="alert">{t('common.failedToLoad')}</div>
-          </div>
-        )}
         <ExploreSection />
         <DiscoverySections
-          trendingProducts={trendingProducts}
-          popularProducts={popularProducts}
-          dealsProducts={dealsProducts}
-          newProducts={newProducts}
-          rareProducts={rareProducts}
+          productsBySection={productsBySection}
           market={selectedMarket}
           onProductClick={handleProductClick}
           loading={loading}
+          failed={Boolean(error)}
+          unavailableSections={unavailableSections}
+          onRetry={() => setRetryCount(count => count + 1)}
         />
         <MarketSection market={selectedMarket} />
       </main>

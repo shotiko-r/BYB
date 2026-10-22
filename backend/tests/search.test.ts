@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../src/modules/market/repository.js', () => ({ PostgresMarketRepository: class { findByCode = mocks.market; } }));
 vi.mock('../src/modules/merchant/repository.js', () => ({ PostgresMerchantRepository: class { findAll = mocks.merchants; } }));
 vi.mock('../src/modules/product/repository.js', () => ({ PostgresProductRepository: class { resolveCategory = mocks.category; search = mocks.search; } }));
+vi.mock('../src/modules/search/catalog.js', () => ({ SearchCatalogRepository: class {} }));
 vi.mock('../src/modules/product/normalization.js', () => ({ ProductNormalizationService: class { normalize = mocks.normalize; persist = mocks.persist; } }));
 import { registerProviders } from '../src/modules/provider/register.js';
 import { SearchService } from '../src/modules/search/service.js';
@@ -63,7 +64,7 @@ describe('search foundation', () => {
     await service([provider('ok')]).search.searchIntent({ category: 'unknown' }, 'GE');
     expect(mocks.search).toHaveBeenCalledWith(expect.objectContaining({ categorySlug: 'unknown', categoryId: undefined }));
   });
-  it.each([{ maxPrice: 20000 }, { filters: { features: ['wireless'] } }])('does not search a full sentence for a constraint-only intent: %j', async constraints => {
+  it.each([{ maxPrice: 20000, currencyCode: 'USD' }, { filters: { features: ['wireless'] } }])('does not search a full sentence for a constraint-only intent: %j', async constraints => {
     const good = provider('ok');
     await service([good]).search.searchIntent({ query: 'I need something suitable for me', ...constraints }, 'GE');
     expect(good.search).toHaveBeenCalledWith(expect.objectContaining({ query: undefined }), 'GE');
@@ -104,12 +105,10 @@ describe('search foundation', () => {
     expect(mocks.normalize).toHaveBeenCalledWith([{ merchantId: 'merchant', products: [expect.objectContaining(providerProduct('USD', 100))] }], 'market');
     expect(result.query.currencyCode).toBe('USD');
   });
-  it('defaults budgets and price sorts to market currency; leaves unsorted currencies intact', async () => {
+  it('requires explicit currency for budgets and price sorts and leaves Best Match mixed', async () => {
     const search = service([provider('ok')]).search;
-    await search.searchIntent({ category: 'headphones', minPrice: 0 }, 'GE');
-    expect(mocks.search).toHaveBeenLastCalledWith(expect.objectContaining({ currencyCode: 'GEL' }));
-    await search.searchIntent({ category: 'headphones' }, 'GE', { sort: 'price_asc' });
-    expect(mocks.search).toHaveBeenLastCalledWith(expect.objectContaining({ currencyCode: 'GEL', sort: 'price_asc' }));
+    await expect(search.searchIntent({ category: 'headphones', minPrice: 0 }, 'GE')).rejects.toMatchObject({ statusCode: 400 });
+    await expect(search.searchIntent({ category: 'headphones' }, 'GE', { sort: 'price_asc' })).rejects.toMatchObject({ statusCode: 400 });
     await search.searchIntent({ category: 'headphones' }, 'GE');
     expect(mocks.search).toHaveBeenLastCalledWith(expect.objectContaining({ currencyCode: undefined }));
   });
@@ -129,10 +128,10 @@ describe('search foundation', () => {
     const app = Fastify();
     await app.register(productRoutes, { prefix: '/api' });
     try {
-      const response = await app.inject({ url: '/api/products/search?q=headphones&maxPrice=10000&sort=price_asc' });
+      const response = await app.inject({ url: '/api/products/search?q=headphones&maxPrice=10000&sort=price_asc&currency=USD' });
       expect(response.statusCode).toBe(200);
-      expect(mocks.search).toHaveBeenCalledWith(expect.objectContaining({ currencyCode: 'GEL', maxPrice: 10000, sort: 'price_asc' }));
-      expect(response.json().query.currencyCode).toBe('GEL');
+      expect(mocks.search).toHaveBeenCalledWith(expect.objectContaining({ currencyCode: 'USD', maxPrice: 10000, sort: 'price_asc' }));
+      expect(response.json().query.currencyCode).toBe('USD');
     } finally { await app.close(); }
   });
   it('serves /api/search with a schema-valid public query and currency', async () => {
@@ -229,7 +228,7 @@ describe('specificity and provenance integration', () => {
     const registry = new InMemoryProviderRegistry(); registry.register(ebay);
     await expect(new SearchService(registry).search('headphones', 'GE')).rejects.toMatchObject({ statusCode: 503 });
   });
-  it('uses the public currencyCode contract, rather than currency', async () => {
+  it('accepts canonical currency and backwards-compatible currencyCode', async () => {
     if (!providerRegistry.get('ok')) providerRegistry.register(provider('ok'));
     const app = Fastify(); await app.register(searchRoutes, { prefix: '/api' });
     try {
@@ -239,8 +238,8 @@ describe('specificity and provenance integration', () => {
       expect(mocks.search).toHaveBeenCalledWith(expect.objectContaining({ maxPrice: 50000, currencyCode: 'GEL' }));
       expect(mocks.normalize.mock.calls[0]![0][0].products).toEqual([]);
       const unsupported = await app.inject({ url: '/api/search?q=headphones&market=GE&maxPrice=50000&currency=USD' });
-      expect(unsupported.json().query.currencyCode).toBe('GEL');
-      expect(unsupported.json().query).not.toHaveProperty('currency');
+      expect(unsupported.statusCode).toBe(200);
+      expect(unsupported.json().query.currencyCode).toBe('USD');
     } finally { await app.close(); }
   });
 });

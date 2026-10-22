@@ -2,30 +2,35 @@
 
 import { ProductImage } from './ProductImage';
 import { merchantName } from '@/lib/merchant';
-import Link from 'next/link';
 import { formatMoney } from '@/lib/offer-prices';
+import { availabilityKey, displayOffers, knownText, offerAction, productCondition, clickoutEnabled } from '@/lib/product-presentation';
+import { homepageSections } from '@/lib/homepage-sections';
 import { useI18n } from '@/i18n/I18nContext';
 import type { Market, ProductWithOffers } from '@/types';
 
 interface DiscoverySectionsProps {
-  trendingProducts: ProductWithOffers[];
-  popularProducts: ProductWithOffers[];
-  dealsProducts: ProductWithOffers[];
-  newProducts: ProductWithOffers[];
-  rareProducts: ProductWithOffers[];
+  productsBySection: Record<string, ProductWithOffers[]>;
   market: Market;
   onProductClick: (product: ProductWithOffers) => void;
   loading?: boolean;
+  failed?: boolean;
+  unavailableSections?: string[];
+  onRetry?: () => void;
 }
 
-// Homepage-only presentation keeps shared search result cards unchanged.
+// Keep the homepage layout while sharing card semantics with search and details.
 function DecisionCard({ product, onProductClick }: {
   product: ProductWithOffers;
   market: Market;
   onProductClick: (product: ProductWithOffers) => void;
 }) {
   const { t } = useI18n();
-  const offer = product.offers[0];
+  const offers = displayOffers(product);
+  const offer = offers[0];
+  const brand = knownText(product.brand);
+  const condition = productCondition(product);
+  const availability = availabilityKey(offer);
+  const action = offerAction(offers.length);
 
   return (
     <button type="button" className="decision-card" onClick={() => onProductClick(product)}>
@@ -33,7 +38,7 @@ function DecisionCard({ product, onProductClick }: {
         <ProductImage src={product.imageUrl} alt={product.name} sizes="(max-width: 600px) 120px, 240px" />
       </span>
       <span className="decision-info">
-        <span className="decision-brand">{product.brand}</span>
+        {brand && <span className="decision-brand">{brand}</span>}
         <span className="decision-name">{product.name}</span>
         {offer && (
           <span className="decision-price">
@@ -42,10 +47,12 @@ function DecisionCard({ product, onProductClick }: {
         )}
         <span className="decision-merchant">
           {merchantName(offer?.merchant) || t('product.merchantUnavailable')}
-          {offer && <> · {t(`product.availability.${offer.availability}`)}</>}
+          {availability && <> · {t(availability)}</>}
         </span>
+        {condition && <span className="decision-merchant">{condition}</span>}
+        {offer && !clickoutEnabled(offer) && <span className="decision-merchant">{t('product.linkUnavailable')}</span>}
         <span className="decision-offers">
-          {t('common.compareOffers', { count: product.offers.length })}
+          {t(action.key, action.params)}
           <span aria-hidden="true">↗</span>
         </span>
       </span>
@@ -55,49 +62,56 @@ function DecisionCard({ product, onProductClick }: {
 
 export function DiscoverySections(props: DiscoverySectionsProps) {
   const { t } = useI18n();
-  const sections = [
-    ['trending', props.trendingProducts, 'headphones', '/search'],
-    ['deals', props.dealsProducts, '', '/deals'],
-    ['popular', props.popularProducts, 'smartphone', '/search'],
-    ['newReleases', props.newProducts, '', '/new'],
-    ['rare', props.rareProducts, '', '/rare'],
-  ] as const;
 
   return (
     <div className="discovery">
-      {sections.map(([key, products, query, path], index) => (
-        <section
-          key={key}
-          className={`discovery-section discovery-${key}`}
-          aria-labelledby={`discovery-${key}`}
-        >
-          <div className="byb-container">
-            <div className="section-heading">
-              <h2 id={`discovery-${key}`}>
-                <span className="section-number" aria-hidden="true">0{index + 1}</span>
-                {t(`homepage.sections.${key}`)}
-              </h2>
-              <Link href={`${path}?${query ? `q=${query}&` : ''}market=${props.market.code}`}>
-                {t('common.viewAll')}
-              </Link>
-            </div>
-            {props.loading ? (
-              <div className="discovery-loading" role="status">{t('common.loading')}</div>
-            ) : products.length ? (
-              <div className="decision-grid">
-                {products.slice(0, 4).map(product => (
-                  <DecisionCard
-                    key={product.id}
-                    product={product}
-                    market={props.market}
-                    onProductClick={props.onProductClick}
-                  />
-                ))}
+      {homepageSections.map((section, index) => {
+        const { key } = section;
+        const products = props.productsBySection[key] ?? [];
+        return (
+          <section
+            key={key}
+            className={`discovery-section discovery-${section.style}`}
+            aria-labelledby={`discovery-${key}`}
+          >
+            <div className="byb-container">
+              <div className="section-heading">
+                <div>
+                  <h2 id={`discovery-${key}`}>
+                    <span className="section-number" aria-hidden="true">0{index + 1}</span>
+                    {t(section.titleKey)}
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-2">{t(`homepage.discovery.${section.descriptionKey}`)}</p>
+                </div>
               </div>
-            ) : <p className="discovery-empty">{t(`homepage.${key}.empty`)}</p>}
-          </div>
-        </section>
-      ))}
+              {props.loading ? (
+                <div role="status" aria-label={t('common.loading')}>
+                  <span className="sr-only">{t('common.loading')}</span>
+                  <div className="decision-grid" aria-hidden="true">{[0, 1, 2, 3].map(slot =>
+                    <div key={slot} className="h-64 animate-pulse rounded-xl bg-gray-100 border border-gray-200" />
+                  )}</div>
+                </div>
+              ) : props.failed || props.unavailableSections?.includes(key) ? (
+                <div className="homepage-error" role="alert">
+                  <p>{t('homepage.discovery.unavailable')}</p>
+                  {props.onRetry && <button type="button" className="btn-secondary mt-3" onClick={props.onRetry}>{t('common.retry')}</button>}
+                </div>
+              ) : products.length ? (
+                <div className="decision-grid">
+                  {products.slice(0, 4).map(product => (
+                    <DecisionCard
+                      key={product.id}
+                      product={product}
+                      market={props.market}
+                      onProductClick={props.onProductClick}
+                    />
+                  ))}
+                </div>
+              ) : <p className="discovery-empty">{t('homepage.discovery.empty')}</p>}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }

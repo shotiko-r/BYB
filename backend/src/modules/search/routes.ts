@@ -25,19 +25,21 @@ export async function searchRoutes(app: FastifyInstance) {
       });
     }
 
-    const { q, market, category, minPrice, maxPrice, brand, currencyCode, page, limit, sort } = parsed.data;
+    const { q, market, category, minPrice, maxPrice, brand, currencyCode, currency, merchant, page, limit, sort } = parsed.data;
 
-    let marketCode = market || 'GE';
+    const marketCode = (market || 'GE').toUpperCase();
     try {
       await marketService.validateMarket(marketCode);
     } catch {
-      marketCode = 'GE';
+      return reply.code(400).send({ code: 'VALIDATION_ERROR', message: 'Unknown market' });
     }
 
     const result = await searchService.search(q, marketCode, {
       category,
       brand,
       currencyCode,
+      currency,
+      merchant,
       minPrice,
       maxPrice,
       page,
@@ -48,29 +50,16 @@ export async function searchRoutes(app: FastifyInstance) {
     return result;
   });
 
-  app.get('/search/suggestions', async (request, _reply) => {
-    const { q, market } = request.query as { q?: string; market?: string };
-    if (!q || q.length < 2) {
-      return { suggestions: [] };
-    }
+  app.get('/search/options', async (request, reply) => {
+    const parsed = z.object({ market: z.string().regex(/^[A-Za-z]{2}$/).default('GE') }).safeParse(request.query);
+    if (!parsed.success) return reply.code(400).send({ code: 'VALIDATION_ERROR', message: 'Invalid market' });
+    return searchService.options(parsed.data.market.toUpperCase());
+  });
 
-    const marketCode = market || 'GE';
-    try {
-      await marketService.validateMarket(marketCode);
-    } catch {
-      return { suggestions: [] };
-    }
-
-    const suggestions = [
-      `${q} headphones`,
-      `${q} wireless`,
-      `${q} noise cancelling`,
-      `${q} bluetooth`,
-      `${q} gaming`,
-      `${q} budget`,
-      `${q} premium`,
-    ].slice(0, 5);
-
-    return { suggestions };
+  app.get('/search/suggestions', async (request, reply) => {
+    const parsed = z.object({ q: z.string().trim().max(100).default(''), market: z.string().regex(/^[A-Za-z]{2}$/).default('GE') }).safeParse(request.query);
+    if (!parsed.success) return reply.code(400).send({ code: 'VALIDATION_ERROR', message: 'Invalid suggestion parameters' });
+    if (parsed.data.q.length < 2) return { suggestions: [] };
+    return { suggestions: await searchService.suggestions(parsed.data.q, parsed.data.market.toUpperCase()) };
   });
 }

@@ -11,6 +11,7 @@ import { productRoutes } from './modules/product/routes.js';
 import { merchantRoutes } from './modules/merchant/routes.js';
 import { conciergeRoutes } from './modules/ai/routes.js';
 import { searchRoutes } from './modules/search/routes.js';
+import { discoveryRoutes } from './modules/discovery/routes.js';
 import { accountDeletionRoutes } from './modules/ebay/account-deletion-routes.js';
 import { providerRegistry } from './modules/provider/registry.js';
 import { registerProviders } from './modules/provider/register.js';
@@ -46,6 +47,7 @@ void app.register(marketRoutes, { prefix: '/api' });
 void app.register(productRoutes, { prefix: '/api' });
 void app.register(merchantRoutes, { prefix: '/api' });
 void app.register(searchRoutes, { prefix: '/api' });
+void app.register(discoveryRoutes, { prefix: '/api' });
 void app.register(conciergeRoutes, { prefix: '/api' });
 void app.register(accountDeletionRoutes, {
   prefix: '/api',

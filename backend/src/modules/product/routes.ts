@@ -3,6 +3,9 @@ import { ProductService } from './service.js';
 import { PostgresProductRepository, type ProductSearchFilters } from './repository.js';
 import { MarketService } from '../market/service.js';
 import { PostgresMarketRepository } from '../market/repository.js';
+import { PostgresMerchantRepository } from '../merchant/repository.js';
+import { providerRegistry } from '../provider/registry.js';
+import { eligibleSources } from '../provider/provenance.js';
 import { SearchQuerySchema } from '@byb/shared/types';
 
 const productRepository = new PostgresProductRepository();
@@ -22,13 +25,28 @@ export async function productRoutes(app: FastifyInstance) {
       });
     }
 
-    const { q, market, category, minPrice, maxPrice, brand, currencyCode, page, limit, sort } = parsed.data;
+    const { q, market, category, minPrice, maxPrice, brand, currencyCode, currency, merchant, page, limit, sort } = parsed.data;
 
-    let marketCode = market || 'GE';
+    if ((currency && currencyCode && currency !== currencyCode)
+      || (!currency && !currencyCode && (sort.startsWith('price_') || minPrice !== undefined || maxPrice !== undefined))
+      || (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice)) {
+      return reply.code(400).send({ code: 'VALIDATION_ERROR', message: 'Choose one explicit currency and a valid price range' });
+    }
+    const knownMerchants = merchant ? await new PostgresMerchantRepository().findAll() : [];
+    const sources = eligibleSources(providerRegistry);
+    const availableCodes = providerRegistry.getForMarket((market || 'GE').toUpperCase()).filter(provider =>
+      !sources || sources.some(source => source.provider === provider.code)).map(provider => provider.code);
+    if (merchant?.some(code => !knownMerchants.some(item => item.code === code && item.isActive) || !availableCodes.includes(code))) {
+      return reply.code(400).send({ code: 'VALIDATION_ERROR', message: 'Unknown merchant' });
+    }
+    const categoryEntity = category ? await productRepository.resolveCategory(category) : undefined;
+    if (category && !categoryEntity) return reply.code(400).send({ code: 'VALIDATION_ERROR', message: 'Unknown category' });
+
+    const marketCode = (market || 'GE').toUpperCase();
     try {
       await marketService.validateMarket(marketCode);
     } catch {
-      marketCode = 'GE';
+      return reply.code(400).send({ code: 'VALIDATION_ERROR', message: 'Unknown market' });
     }
 
     const marketEntity = await marketService.getMarketByCode(marketCode);
@@ -36,9 +54,10 @@ export async function productRoutes(app: FastifyInstance) {
     const filters: ProductSearchFilters = {
       marketId: marketEntity.id,
       query: q,
-      categoryId: category,
+      categoryId: categoryEntity?.id,
+      merchantCodes: merchant,
       brand,
-      currencyCode: currencyCode ?? ((minPrice !== undefined || maxPrice !== undefined || sort.startsWith('price_')) ? marketEntity.currencyCode : undefined),
+      currencyCode: currency ?? currencyCode,
       minPrice,
       maxPrice,
       page,

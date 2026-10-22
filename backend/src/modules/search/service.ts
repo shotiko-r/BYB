@@ -10,6 +10,8 @@ import { PostgresMerchantRepository } from '../merchant/repository.js';
 import { providerRegistry } from '../provider/registry.js';
 import { MockSearchIntentParser } from '../ai/mock-parser.js';
 import { AppError } from '../../shared/errors.js';
+import { SearchCatalogRepository } from './catalog.js';
+import { namedCurrency, textBudget } from './text-budget.js';
 
 type SearchOptions = Partial<Omit<SearchQuery, 'q' | 'market'>>;
 
@@ -29,14 +31,26 @@ export class SearchService {
 
   async search(query: string, marketCode: string, options: SearchOptions = {}): Promise<SearchResult> {
     const intent = await this.intentParser.parse(query, marketCode);
+    const textCurrency = intent.currencyCode ?? namedCurrency(query);
+    const selectedCurrency = options.currency ?? options.currencyCode;
+    if (selectedCurrency && textCurrency && selectedCurrency !== textCurrency
+      && ((intent.minPrice !== undefined && options.minPrice === undefined) || (intent.maxPrice !== undefined && options.maxPrice === undefined))) {
+      throw AppError.badRequest('Text budget currency conflicts with selected currency; use explicit price controls');
+    }
+    const currencyCode = selectedCurrency ?? textCurrency;
+    const budget = currencyCode ? textBudget(query, currencyCode) : {};
+    const specificity = searchSpecificity(intent);
+    // Accessory queries name a target device, not necessarily the accessory's own brand/category.
+    const base = specificity.accessory ? { ...intent, brand: undefined, category: undefined,
+      filters: { accessory: true, model: specificity.model } } : intent;
     // Explicit request filters win, including a zero minimum price.
     return this.searchIntent({
-      ...intent,
-      category: options.category ?? intent.category,
-      brand: options.brand ?? intent.brand,
-      minPrice: options.minPrice ?? intent.minPrice,
-      maxPrice: options.maxPrice ?? intent.maxPrice,
-      currencyCode: options.currencyCode ?? intent.currencyCode,
+      ...base,
+      category: options.category ?? base.category,
+      brand: options.brand ?? base.brand,
+      minPrice: options.minPrice ?? budget.minPrice ?? intent.minPrice,
+      maxPrice: options.maxPrice ?? budget.maxPrice ?? intent.maxPrice,
+      currencyCode,
       query,
     }, marketCode, options);
   }
@@ -63,15 +77,18 @@ export class SearchService {
       brand: intent.brand,
       minPrice: intent.minPrice,
       maxPrice: intent.maxPrice,
-      currencyCode: intent.currencyCode ?? options.currencyCode,
+      currencyCode: options.currency ?? intent.currencyCode ?? options.currencyCode,
     });
     if (!queryResult.success) throw AppError.badRequest('Invalid search options or intent');
     const publicQuery = queryResult.data;
     // Price filters/sorts always operate in one currency, never on mixed raw amounts.
     const needsCurrency = intent.minPrice !== undefined || intent.maxPrice !== undefined || publicQuery.sort.startsWith('price_');
-    const currencyCode = publicQuery.currencyCode ?? (needsCurrency ? market.currencyCode : undefined);
+    if (options.currency && options.currencyCode && options.currency !== options.currencyCode) throw AppError.badRequest('Conflicting currencies');
+    const currencyCode = publicQuery.currency ?? publicQuery.currencyCode;
+    if (needsCurrency && !currencyCode) throw AppError.badRequest('Choose an explicit currency for price sorting or price ranges');
     if (currencyCode) publicQuery.currencyCode = currencyCode;
     const category = intent.category ? await this.productRepository.resolveCategory(intent.category) : undefined;
+    if (options.category && !category) throw AppError.badRequest('Unknown category; choose an active BYB category');
     const hasConstraints = Boolean(intent.category || intent.brand || features?.length || intent.filters?.useCase)
       || intent.minPrice !== undefined || intent.maxPrice !== undefined;
     const relevance = searchSpecificity(intent);
@@ -84,10 +101,12 @@ export class SearchService {
       query: relevance.model ?? relevance.terms ?? (hasConstraints ? undefined : intent.query?.trim()),
     };
     const marketSources = this.registry.getForMarket(market.code).filter(provider => sources === undefined || provenance(provider).mode === 'real');
-    const providers = marketSources.filter(provider => provider.retrievalMode !== 'persisted-feed');
     if (!marketSources.length) throw AppError.unavailable(`No providers available for market ${market.code}`);
     const merchants = await this.merchantRepository.findAll();
     const merchantMap = new Map(merchants.filter(m => m.isActive).map(m => [m.code, m.id]));
+    const merchantCodes = publicQuery.merchant;
+    if (merchantCodes?.some(code => !merchantMap.has(code) || !marketSources.some(source => source.code === code))) throw AppError.badRequest('Unknown or unavailable merchant');
+    const providers = marketSources.filter(provider => provider.retrievalMode !== 'persisted-feed' && (!merchantCodes || merchantCodes.includes(provider.code)));
     const outcomes = await Promise.allSettled(providers.map(async provider => {
       const merchantId = merchantMap.get(provider.code);
       // Never persist an offer with an empty/invalid merchant identity.
@@ -106,7 +125,7 @@ export class SearchService {
       };
     }));
     const successful = outcomes.flatMap(outcome => outcome.status === 'fulfilled' && outcome.value ? [outcome.value] : []);
-    if (!successful.length && sources === undefined) throw AppError.unavailable('No configured providers completed the search');
+    if (!successful.length && sources === undefined && providers.length) throw AppError.unavailable('No configured providers completed the search');
     const normalized = await this.normalizationService.normalize(successful, market.id);
     await this.normalizationService.persist(normalized);
     const result = await this.productRepository.search({
@@ -118,6 +137,7 @@ export class SearchService {
       categoryId: category?.id,
       categorySlug: category ? undefined : intent.category,
       brand: intent.brand,
+      merchantCodes,
       minPrice: intent.minPrice,
       maxPrice: intent.maxPrice,
       currencyCode,
@@ -135,6 +155,18 @@ export class SearchService {
       query: publicQuery,
       intent: { ...intent, currencyCode },
     };
+  }
+
+  async options(marketCode: string) {
+    const market = await this.marketRepository.findByCode(marketCode);
+    if (!market?.isActive) throw AppError.notFound('Market not found');
+    return new SearchCatalogRepository(this.registry).options(market.id, market.code);
+  }
+
+  async suggestions(text: string, marketCode: string) {
+    const market = await this.marketRepository.findByCode(marketCode);
+    if (!market?.isActive) return [];
+    return new SearchCatalogRepository(this.registry).suggestions(text, market.id, market.code);
   }
 
   async getProduct(productId: string, marketCode: string) {

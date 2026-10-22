@@ -3,6 +3,8 @@
 import { ProductImage } from './ProductImage';
 import { merchantName } from '@/lib/merchant';
 import { formatMoney } from '@/lib/offer-prices';
+import { availabilityKey, displayOffers, knownText, offerAction, productCondition } from '@/lib/product-presentation';
+import { MerchantLink } from './MerchantLink';
 import { useI18n } from '@/i18n/I18nContext';
 import type { ProductWithOffers, Market } from '@/types';
 
@@ -14,20 +16,14 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
   const { t } = useI18n();
-  const bestOffer = product.offers[0];
-  const offerCount = product.offers.length;
-
-  const availabilityLabels = {
-    in_stock: { label: t('product.availability.in_stock'), class: 'text-green-600' },
-    limited: { label: t('product.availability.limited'), class: 'text-yellow-600' },
-    pre_order: { label: t('product.availability.pre_order'), class: 'text-blue-600' },
-    out_of_stock: { label: t('product.availability.out_of_stock'), class: 'text-red-600' },
-    unknown: { label: t('product.availability.unknown'), class: 'text-gray-600' },
-  };
-
-  const availability = bestOffer?.availability as keyof typeof availabilityLabels;
-  const availabilityLabel = availabilityLabels[availability] || availabilityLabels.unknown;
-  const merchant = merchantName(bestOffer?.merchant);
+  const offers = displayOffers(product);
+  const offer = offers[0];
+  const offerCount = offers.length;
+  const action = offerAction(offerCount);
+  const availability = availabilityKey(offer);
+  const merchant = merchantName(offer?.merchant);
+  const brand = knownText(product.brand);
+  const condition = productCondition(product);
 
   return (
     <article
@@ -39,12 +35,12 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw" />
         {offerCount > 1 && (
           <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full">
-            {t('common.compareOffers', { count: offerCount })}
+            {t(action.key, action.params)}
           </div>
         )}
-        {bestOffer && bestOffer.availability !== 'in_stock' && bestOffer.availability !== 'unknown' && (
+        {availability && offer?.availability !== 'in_stock' && (
           <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-            {availabilityLabel.label}
+            {availability && t(availability)}
           </div>
         )}
       </div>
@@ -58,36 +54,29 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           </h3>
         </div>
 
-        {bestOffer && <span className="inline-block max-w-full break-words text-xs font-medium text-gray-700 bg-gray-100 rounded-full px-2.5 py-1 mb-2">
+        {offer && <span className="inline-block max-w-full break-words text-xs font-medium text-gray-700 bg-gray-100 rounded-full px-2.5 py-1 mb-2">
           {merchant || t('product.merchantUnavailable')}
         </span>}
-        {product.brand && (
-          <p className="text-sm text-gray-500 mb-2">{product.brand}</p>
+        {brand && (
+          <p className="text-sm text-gray-500 mb-2">{brand}</p>
         )}
 
         <div className="flex items-center justify-between">
           <div>
-            {bestOffer && (
+            {offer && (
               <span className="text-xl font-bold text-gray-900">
-                {formatMoney(bestOffer.priceAmount, bestOffer.currencyCode)}
+                {formatMoney(offer.priceAmount, offer.currencyCode)}
               </span>
             )}
           </div>
-          {bestOffer && availabilityLabel.label !== t('product.availability.unknown') && (
-            <span className={`text-xs font-medium ${availabilityLabel.class}`}>
-              {availabilityLabel.label}
-            </span>
-          )}
+          {availability && <span className="text-xs font-medium text-gray-600">{t(availability)}</span>}
         </div>
+        {condition && <p className="text-sm text-gray-600 mt-2">{condition}</p>}
 
-        {bestOffer?.destinationUrl && (
-          <a href={bestOffer.destinationUrl} target="_blank" rel="sponsored nofollow noopener noreferrer"
-            onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}
-            className="mt-3 w-full inline-flex justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            {merchant ? t('product.buyOn', { merchant }) : t('product.visitMerchant')}
-          </a>
-        )}
-        {offerCount > 1 && bestOffer && (
+        {offer && <MerchantLink offer={offer} className="mt-3 w-full" />}
+        {offerCount <= 1 && <button type="button" onClick={event => { event.stopPropagation(); onClick(product); }}
+          className="mt-3 w-full text-sm text-blue-600 hover:text-blue-700 font-medium">{t(action.key, action.params)}</button>}
+        {offerCount > 1 && offer && (
           <button
             onClick={(e) => { e.stopPropagation(); onClick(product); }}
             className="mt-3 w-full text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center gap-1"
@@ -95,7 +84,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19l9 2m0 0l-2-4m2 4l2-4m-6 11V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2v-2" />
             </svg>
-            {t('common.compareOffers', { count: offerCount })}
+            {t(action.key, action.params)}
           </button>
         )}
       </div>

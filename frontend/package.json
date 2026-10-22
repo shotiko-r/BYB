@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "tsx --tsconfig tsconfig.json --test tests/*.test.tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:browser": "node tests/search-browser.cjs"
   },
   "dependencies": {
     "@byb/shared": "file:../shared",

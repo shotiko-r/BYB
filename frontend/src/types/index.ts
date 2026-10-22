@@ -83,26 +83,8 @@ export type SearchResult = {
   intent?: SearchIntent;
 };
 
-export type SearchQuery = {
-  q: string;
-  market?: string;
-  category?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  brand?: string;
-  page: number;
-  limit: number;
-  sort: 'relevance' | 'price_asc' | 'price_desc' | 'newest';
-};
-
-export type SearchIntent = {
-  category?: string;
-  maxPrice?: number;
-  minPrice?: number;
-  brand?: string;
-  query?: string;
-  filters?: Record<string, unknown>;
-};
+export type SearchQuery = import('@byb/shared').SearchQuery;
+export type SearchIntent = import('@byb/shared').SearchIntent;
 
 export type ApiError = {
   code: string;

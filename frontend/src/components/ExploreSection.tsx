@@ -9,12 +9,13 @@ const destinations = [
   { id: 'home', path: 'M3 11l9-8 9 8 M6 9v12h12V9 M10 21v-7h4v7' },
   { id: 'outdoors', path: 'M3 20L12 4l9 16H3Z M12 4v16 M9 20l3-6 3 6' },
 ];
+const categoryQueries: Record<string, string> = { tech: 'electronics', auto: 'car parts', home: 'coffee machine', outdoors: 'camping' };
 const futureDestinations = ['fashion', 'beauty', 'sports', 'kids', 'pets', 'tools'];
 
 export function ExploreSection() {
   const { t } = useI18n();
   return (
-    <section className="explore-section byb-container" aria-labelledby="explore-heading">
+    <section id="explore" className="explore-section byb-container" aria-labelledby="explore-heading">
       <div className="section-heading">
         <div>
           <h2 id="explore-heading">{t('homepage.sections.explore')}</h2>
@@ -23,7 +24,7 @@ export function ExploreSection() {
       </div>
       <div className="destination-grid">
         {destinations.map(({ id, path }, index) => (
-          <Link className={`destination destination-${id}`} key={id} href={`/categories/${id}`}>
+          <Link className={`destination destination-${id}`} key={id} href={`/search?${new URLSearchParams({ q: categoryQueries[id] })}`}>
             <div className="destination-top">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"
                 strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

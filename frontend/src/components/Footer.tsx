@@ -22,10 +22,8 @@ export function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">{t('footer.product')}</h3>
             <ul className="space-y-2 text-sm text-gray-600">
               <li><Link href="/search" className="hover:text-blue-600 transition-colors">{t('footer.links.search')}</Link></li>
-              <li><Link href="/trending" className="hover:text-blue-600 transition-colors">{t('footer.links.trending')}</Link></li>
-              <li><Link href="/deals" className="hover:text-blue-600 transition-colors">{t('footer.links.deals')}</Link></li>
-              <li><Link href="/categories" className="hover:text-blue-600 transition-colors">{t('footer.links.categories')}</Link></li>
-              <li><Link href="/new" className="hover:text-blue-600 transition-colors">{t('footer.links.newReleases')}</Link></li>
+              <li><Link href="/#explore" className="hover:text-blue-600 transition-colors">{t('footer.links.categories')}</Link></li>
+              <li><Link href="/search?q=headphones&sort=newest" className="hover:text-blue-600 transition-colors">{t('homepage.sections.newOnByb')}</Link></li>
             </ul>
           </nav>
 

@@ -573,15 +573,15 @@ body {
   border-top: 1px solid var(--byb-line);
 }
 
-.discovery-deals {
+.discovery-under25 {
   background: var(--byb-surface);
 }
 
-.discovery-deals .section-number {
+.discovery-under25 .section-number {
   color: var(--byb-deal-ink);
 }
 
-.discovery-deals .decision-price {
+.discovery-under25 .decision-price {
   color: var(--byb-deal-ink);
 }
 
@@ -691,20 +691,20 @@ body {
   margin-top: auto;
 }
 
-.discovery-popular .decision-grid, .discovery-rare .decision-grid {
+.discovery-newOnByb .decision-grid, .discovery-more .decision-grid {
   grid-template-columns: repeat(2,minmax(0,1fr));
 }
 
-.discovery-popular .decision-card, .discovery-rare .decision-card {
+.discovery-newOnByb .decision-card, .discovery-more .decision-card {
   flex-direction: row;
 }
 
-.discovery-popular .decision-image, .discovery-rare .decision-image {
+.discovery-newOnByb .decision-image, .discovery-more .decision-image {
   flex: 0 0 115px;
   height: 130px;
 }
 
-.discovery-popular .decision-info, .discovery-rare .decision-info {
+.discovery-newOnByb .decision-info, .discovery-more .decision-info {
   padding: 18px 17px 15px 8px;
 }
 
@@ -977,7 +977,7 @@ body {
   .section-heading > a {
     font-size: 10px;
   }
-  .discovery-popular .decision-grid, .discovery-rare .decision-grid {
+  .discovery-newOnByb .decision-grid, .discovery-more .decision-grid {
     grid-template-columns: 1fr;
   }
   .market-section {

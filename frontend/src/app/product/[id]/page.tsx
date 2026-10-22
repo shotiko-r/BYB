@@ -1,13 +1,13 @@
 'use client';
 
 import { ProductImage } from '@/components/ProductImage';
-import { merchantName } from '@/lib/merchant';
+import { knownText } from '@/lib/product-presentation';
+import { ProductOfferSummary } from '@/components/ProductOfferSummary';
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductComparison } from '@/components/ProductComparison';
 import { api } from '@/lib/api';
-import { formatMoney } from '@/lib/offer-prices';
 import { useI18n } from '@/i18n/I18nContext';
 import type { Market, ProductWithOffers } from '@/types';
 
@@ -104,7 +104,8 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
     );
   }
 
-  const bestOffer = product.offers[0];
+  const brand = knownText(product.brand);
+  const model = knownText(product.model);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -125,9 +126,9 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
             <div className="lg:col-span-2 min-w-0 space-y-6">
               <article>
                 <header className="mb-6">
-                  {product.brand && <p className="text-sm text-gray-500 mb-1">{product.brand}</p>}
+                  {brand && <p className="text-sm text-gray-500 mb-1">{brand}</p>}
                   <h1 className="text-3xl font-bold text-gray-900 mb-2 break-words">{product.name}</h1>
-                  {product.model && <p className="text-gray-600">{t('product.model', { model: product.model })}</p>}
+                  {model && <p className="text-gray-600">{t('product.model', { model })}</p>}
                 </header>
 
                 <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden mb-6">
@@ -139,61 +140,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
             </div>
 
             <aside className="lg:col-span-1">
-              <div className="sticky top-24 space-y-6">
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('product.bestOffer')}</h2>
-                  {bestOffer && (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <p className="font-medium">{merchantName(bestOffer.merchant) || t('product.merchantUnavailable')}</p>
-                          <p className="text-sm text-gray-500">{bestOffer.availability === 'in_stock' ? t('product.availability.in_stock') : bestOffer.availability}</p>
-                        </div>
-                      </div>
-                      <div className="text-3xl font-bold text-gray-900">
-                        {formatMoney(bestOffer.priceAmount, bestOffer.currencyCode)}
-                      </div>
-                      <a
-                        href={bestOffer.destinationUrl}
-                        target="_blank"
-                        rel="sponsored nofollow noopener noreferrer"
-                        className="btn-primary w-full"
-                      >
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                        {merchantName(bestOffer.merchant) ? t('product.buyOn', { merchant: merchantName(bestOffer.merchant)! }) : t('product.visitMerchant')}
-                      </a>
-                    </div>
-                  )}
-                </div>
-
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('product.allOffers', { count: product.offers.length })}</h2>
-                  <ul className="space-y-3">
-                    {product.offers.slice(0, 5).map((offer) => (
-                      <li key={offer.id} className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-sm font-medium truncate">{merchantName(offer.merchant) || t('product.merchantUnavailable')}</span>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="font-semibold text-gray-900">
-                            {formatMoney(offer.priceAmount, offer.currencyCode)}
-                          </p>
-                          <p className="text-xs text-gray-500">{offer.availability}</p>
-                        </div>
-                      </li>
-                    ))}
-                    {product.offers.length > 5 && (
-                      <li className="text-center pt-2">
-                        <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                          {t('product.viewAllOffers', { count: product.offers.length })}
-                        </button>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-              </div>
+              <ProductOfferSummary product={product} />
             </aside>
           </div>
         </div>

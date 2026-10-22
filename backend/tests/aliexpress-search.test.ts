@@ -178,8 +178,8 @@ describe.skipIf(!url)('AliExpress search: actual HTTP routes and disposable Post
     expect((await repo.search({ ...filters(), currencyCode: 'USD', maxPrice: 10000 })).total).toBe(1);
     expect((await repo.search({ ...filters(), currencyCode: 'GEL', maxPrice: 10000 })).total).toBe(0);
     const response = await app.inject({ url: '/api/search?q=Sony%20WH-1000XM5&market=GE&maxPrice=10000' });
-    expect(response.statusCode).toBe(200);
-    expect(response.json()).toMatchObject({ total: 0, query: { currencyCode: 'GEL' } });
+    expect(response.statusCode).toBe(400);
+    expect(response.json().message).toContain('currency');
   });
 
   it('returns AliExpress if live eBay fails and retains eligible cached eBay', async () => {
@@ -225,4 +225,120 @@ describe.skipIf(!url)('AliExpress search: actual HTTP routes and disposable Post
     const unregistered = new InMemoryProviderRegistry(); registerProviders(unregistered, { ...settings, ALIEXPRESS_SEARCH_ENABLED: false });
     expect(await repo.findByIdWithOffers((await pool.query('SELECT id FROM products')).rows[0].id, marketId, unregistered)).toBeNull();
   });
+
+  async function bothSources() {
+    const ali = await seed();
+    vi.mocked(providerRegistry.get('ebay')!.search).mockResolvedValueOnce({ products: [ebayProduct], total: 1, query: '' });
+    const response = await search();
+    expect(response.statusCode, response.body).toBe(200);
+    return ali;
+  }
+  it.each([['ebay', 1], ['aliexpress', 1], ['ebay,aliexpress', 2]] as const)('filters merchant=%s before counts and pagination', async (merchant, total) => {
+    await bothSources();
+    const response = await app.inject(`/api/search?q=Sony%20WH-1000XM5&market=GE&merchant=${merchant}&limit=1`);
+    expect(response.statusCode, response.body).toBe(200);
+    const result = SearchResultSchema.parse(response.json());
+    expect(result.total).toBe(total); expect(result.totalPages).toBe(total); expect(result.products).toHaveLength(1);
+    expect(result.products.flatMap(product => product.offers).every(offer => merchant.split(',').includes(offer.merchant!.code))).toBe(true);
+    if (merchant === 'aliexpress') expect(providerRegistry.get('ebay')!.search).toHaveBeenCalledTimes(1); // only initial population
+  });
+  it('filters attached offers on an existing shared product rather than counting unselected merchants', async () => {
+    const ali = await bothSources();
+    const ebay = (await pool.query("SELECT id FROM products WHERE attributes->>'source'='ebay_browse'")).rows[0].id;
+    await pool.query('UPDATE offers SET product_id=$1 WHERE product_id=$2', [ali, ebay]);
+    const response = await app.inject('/api/search?q=Sony%20WH-1000XM5&merchant=ebay');
+    expect(response.json().total).toBe(1);
+    expect(response.json().products[0].offers).toHaveLength(1);
+    expect(response.json().products[0].offers[0].merchant.code).toBe('ebay');
+  });
+  it.each(['unknown', 'amazon', 'ebay,unknown'])('rejects invalid/unregistered real merchant filter %s', async merchant => {
+    const response = await app.inject(`/api/search?q=Sony%20WH-1000XM5&merchant=${merchant}`);
+    // Amazon is known but mock-only, so it is unavailable as a real-mode filter.
+    expect(response.statusCode).toBe(400);
+    expect(providerRegistry.get('ebay')!.search).not.toHaveBeenCalled();
+  });
+  it('requires explicit currency for price sort and never silently chooses GEL', async () => {
+    await seed();
+    for (const sort of ['price_asc', 'price_desc']) {
+      const response = await app.inject(`/api/search?q=Sony%20WH-1000XM5&market=GE&sort=${sort}`);
+      expect(response.statusCode).toBe(400); expect(response.json().message).toContain('currency');
+    }
+    const explicit = await app.inject('/api/search?q=Sony%20WH-1000XM5&sort=price_asc&currency=USD');
+    expect(explicit.statusCode, explicit.body).toBe(200); expect(explicit.json().total).toBe(1);
+    expect(explicit.json().query.currencyCode).toBe('USD');
+    const best = await search(); expect(best.json().query.currencyCode).toBeUndefined();
+  });
+  it.each([['JPY', '100', 100], ['KWD', '0.001', 1]] as const)('interprets text budgets in explicit %s units without rounding or FX', async (currency, amount, minor) => {
+    const id = await seed();
+    await pool.query('UPDATE offers SET currency_code=$1,price_amount=$2 WHERE product_id=$3', [currency, minor, id]);
+    const response = await app.inject(`/api/search?q=${encodeURIComponent(`Sony WH-1000XM5 under ${amount}`)}&currency=${currency}`);
+    expect(response.statusCode, response.body).toBe(200); expect(response.json().query.maxPrice).toBe(minor);
+    expect(response.json().products[0].offers[0]).toMatchObject({ currencyCode: currency, priceAmount: minor });
+  });
+  it('rejects a text budget currency conflicting with the selected filter', async () => {
+    expect((await app.inject('/api/search?q=Sony%20WH-1000XM5%20under%20%24100&currency=JPY')).statusCode).toBe(400);
+  });
+  it('filters exact currency and inclusive price bounds before pagination', async () => {
+    const first = await seed(); const exact = await seed('Sony WH-1000XM5', '002'); const third = await seed('Sony WH-1000XM5', '003');
+    await pool.query('UPDATE offers SET price_amount=99 WHERE product_id=$1', [first]);
+    await pool.query('UPDATE offers SET price_amount=100 WHERE product_id=$1', [exact]);
+    await pool.query("UPDATE offers SET price_amount=101,currency_code='GEL' WHERE product_id=$1", [third]);
+    const result = await app.inject('/api/search?q=Sony%20WH-1000XM5&currency=USD&minPrice=100&maxPrice=100');
+    expect(result.statusCode, result.body).toBe(200); expect(result.json().total).toBe(1); expect(result.json().products[0].id).toBe(exact);
+    const gel = await app.inject('/api/search?q=Sony%20WH-1000XM5&currency=GEL'); expect(gel.json().total).toBe(1);
+  });
+  it.each(['minPrice=200&maxPrice=100&currency=USD', 'maxPrice=100&currency=XYZ', 'sort=price_asc&currency=USD&currencyCode=GEL', 'maxPrice=1.5&currency=USD'])('rejects invalid price/currency request %s', async query => {
+    expect((await app.inject(`/api/search?q=Sony%20WH-1000XM5&${query}`)).statusCode).toBe(400);
+  });
+  it('offers controlled categories and applies exact category only', async () => {
+    const id = await seed();
+    await pool.query("UPDATE products SET category_id=(SELECT id FROM categories WHERE slug='headphones') WHERE id=$1", [id]);
+    const options = await app.inject('/api/search/options?market=GE');
+    expect(options.statusCode, options.body).toBe(200);
+    expect(options.json().merchants.map((item: { code: string }) => item.code)).toEqual(['aliexpress', 'ebay']);
+    expect(options.json().categories.some((item: { slug: string }) => item.slug === 'aliexpress-feed')).toBe(false);
+    const exact = await app.inject('/api/search?q=Sony%20WH-1000XM5&category=headphones'); expect(exact.json().total).toBe(1);
+    const parent = await app.inject('/api/search?q=Sony%20WH-1000XM5&category=electronics'); expect(parent.json().total).toBe(0);
+    expect((await app.inject('/api/search?q=Sony%20WH-1000XM5&category=invented')).statusCode).toBe(400);
+  });
+  it('ranks an exact title ahead of a longer model result with deterministic ties', async () => {
+    const exact = await seed(); const longer = await seed('AAA Sony WH-1000XM5 headphones', '002');
+    await pool.query("UPDATE products SET brand='Sony',model='WH-1000XM5' WHERE id=$1", [longer]);
+    const response = await search(); expect(response.statusCode, response.body).toBe(200);
+    expect(response.json().products[0].id).toBe(exact);
+    const alias = await app.inject('/api/search?q=Sony%20WH-1000XM5&sort=best_match'); expect(alias.json().products[0].id).toBe(exact);
+  });
+  it('keeps model accessories separate and supports explicit accessory intent', async () => {
+    const full = await seed(); const accessory = await seed('Replacement ear pads for Sony WH-1000XM5', '002');
+    expect((await search()).json().products.map((product: { id: string }) => product.id)).toEqual([full]);
+    const response = await app.inject('/api/search?q=Replacement%20ear%20pads%20for%20Sony%20WH-1000XM5');
+    expect(response.statusCode, response.body).toBe(200);
+    expect(response.json().products.map((product: { id: string }) => product.id)).toEqual([accessory]);
+  });
+  it('newest means BYB creation timestamp, not price or manufacturer release date', async () => {
+    const old = await seed(); const recent = await seed('Sony WH-1000XM5', '002');
+    await pool.query("UPDATE products SET created_at=CURRENT_TIMESTAMP-INTERVAL '30 days' WHERE id=$1", [old]);
+    const response = await app.inject('/api/search?q=Sony%20WH-1000XM5&sort=newest');
+    expect(response.json().products.map((product: { id: string }) => product.id)).toEqual([recent, old]);
+  });
+  it('suggests only bounded, deduplicated real persisted catalog names/models/brands', async () => {
+    await bothSources(); await seed('Sony WH-1000XM5', '002');
+    const response = await app.inject('/api/search/suggestions?q=So&market=GE');
+    expect(response.statusCode, response.body).toBe(200);
+    const values = response.json().suggestions as string[];
+    expect(values).toContain('Sony'); expect(values).toContain('Sony WH-1000XM5');
+    expect(new Set(values.map(value => value.toLowerCase())).size).toBe(values.length); expect(values.length).toBeLessThanOrEqual(8);
+    expect(values).not.toContain('So gaming'); expect(values).not.toContain('So wireless');
+    expect(providerRegistry.get('ebay')!.search).toHaveBeenCalledTimes(1);
+    expect((await app.inject('/api/search/suggestions?q=%25&market=GE')).json().suggestions).toEqual([]);
+  });
+  it('suggestions exclude stale AliExpress rows and disabled merchant-market links', async () => {
+    await seed('Synthetic Rare Catalog Product');
+    await metadata(['_byb','feed','lastSeenAt'], '2000-01-01T00:00:00.000Z');
+    expect((await app.inject('/api/search/suggestions?q=Synthetic&market=GE')).json().suggestions).toEqual([]);
+    await seed('Synthetic Rare Catalog Product');
+    await pool.query('UPDATE market_merchants SET is_enabled=false');
+    expect((await app.inject('/api/search/suggestions?q=Synthetic&market=GE')).json().suggestions).toEqual([]);
+  });
+
 });

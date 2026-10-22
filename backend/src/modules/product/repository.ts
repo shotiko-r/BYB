@@ -1,6 +1,6 @@
 import type { FeedSearchPolicy } from '../provider/aliexpress-feed.js';
 import type { ProviderRegistry } from '../provider/types.js';
-import { modelPattern, ACCESSORY_PATTERN, BUNDLE_PATTERN, searchSpecificity, type RelevancePolicy } from '../search/relevance.js';
+import { modelPattern, ACCESSORY_PATTERN, BUNDLE_PATTERN, searchSpecificity, relevanceOrderSql, type RelevancePolicy } from '../search/relevance.js';
 import { eligibleSources, feedSearchPolicy, offerEligibilitySql, type OfferProvenance } from '../provider/provenance.js';
 import { providerRegistry } from '../provider/registry.js';
 import { query } from '../../config/database.js';
@@ -26,11 +26,12 @@ export interface ProductSearchFilters {
   features?: string[];
   currencyCode?: string;
   brand?: string;
+  merchantCodes?: string[];
   minPrice?: number;
   maxPrice?: number;
   page: number;
   limit: number;
-  sort: 'relevance' | 'price_asc' | 'price_desc' | 'newest';
+  sort: 'relevance' | 'best_match' | 'price_asc' | 'price_desc' | 'newest';
 }
 
 export interface CreateProductInput {
@@ -218,16 +219,25 @@ export class PostgresProductRepository implements ProductRepository {
 
     let whereClause = 'WHERE p.is_active = true AND o.is_active = true AND m.is_active = true AND o.market_id = $1';
     const params: unknown[] = [marketId];
+    whereClause += ' AND EXISTS (SELECT 1 FROM markets mk JOIN market_merchants mm ON mm.market_id = mk.id WHERE mk.id = o.market_id AND mk.is_active AND mm.merchant_id = m.id AND mm.is_enabled)';
     whereClause += offerEligibilitySql(filters.eligibleSources ?? eligibleSources(providerRegistry), params, filters.feedPolicy ?? feedSearchPolicy(providerRegistry));
     if (relevance.model) {
       params.push(modelPattern(relevance.model), ACCESSORY_PATTERN);
-      whereClause += ` AND p.name ~* $${params.length - 1} AND regexp_replace(p.name, '${BUNDLE_PATTERN}', '', 'gi') !~* $${params.length}`;
+      whereClause += ` AND p.name ~* $${params.length - 1} AND regexp_replace(p.name, '${BUNDLE_PATTERN}', '', 'gi') ${relevance.accessory ? '~*' : '!~*'} $${params.length}`;
       if (relevance.brand) {
         params.push(relevance.brand);
         whereClause += ` AND (p.brand IS NULL OR lower(p.brand) = lower($${params.length}))`;
       }
     }
+    if (!relevance.model && relevance.accessory) {
+      params.push(ACCESSORY_PATTERN);
+      whereClause += ` AND regexp_replace(p.name, '${BUNDLE_PATTERN}', '', 'gi') ~* $${params.length}`;
+    }
     let paramIndex = params.length + 1;
+    if (filters.merchantCodes?.length) {
+      whereClause += ` AND m.code = ANY($${paramIndex}::text[])`;
+      params.push(filters.merchantCodes); paramIndex++;
+    }
 
     if (searchQuery) {
       whereClause += ` AND (p.name ILIKE $${paramIndex} OR p.brand ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex})`;
@@ -280,6 +290,7 @@ export class PostgresProductRepository implements ProductRepository {
       paramIndex++;
     }
 
+    const countParams = [...params];
     // One row per product; price means its cheapest qualifying offer in the selected currency.
     let orderBy = 'ORDER BY p.name ASC, p.id ASC';
     switch (sort) {
@@ -292,7 +303,10 @@ export class PostgresProductRepository implements ProductRepository {
       case 'newest':
         orderBy = 'ORDER BY p.created_at DESC, p.id ASC';
         break;
-      // Relevance remains a deterministic alphabetical fallback, not recommendation ranking.
+      case 'relevance':
+      case 'best_match':
+        orderBy = relevanceOrderSql(relevance, searchQuery, value => { params.push(value); return `$${paramIndex++}`; });
+        break;
     }
 
     const countSql = `
@@ -304,7 +318,7 @@ export class PostgresProductRepository implements ProductRepository {
       ${whereClause}
     `;
 
-    const countResult = await query<{ total: string }>(countSql, params);
+    const countResult = await query<{ total: string }>(countSql, countParams);
     const total = parseInt(countResult.rows[0]?.total || '0', 10);
 
     const selectSql = `
