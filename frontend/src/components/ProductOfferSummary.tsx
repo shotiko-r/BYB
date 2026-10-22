@@ -11,19 +11,21 @@ import type { ProductWithOffers } from '@/types';
 export function ProductOfferSummary({ product }: { product: ProductWithOffers }) {
   const { t } = useI18n();
   const offers = displayOffers(product);
-  const offer = offers[0];
+  const offer = (product.variationGroup ? offers.find(offer => offer.merchant?.code === 'ebay') : undefined) ?? offers[0];
   const condition = productCondition(product);
   const availability = availabilityKey(offer);
   return <section className="purchase-panel" aria-label={t('product.offerDetails')}>
     {offer ? <>
       <p className="purchase-merchant">{merchantName(offer.merchant) || t('product.merchantUnavailable')}</p>
-      <p className="purchase-price">{formatMoney(offer.priceAmount, offer.currencyCode)}</p>
+      <p className="purchase-price" aria-live="polite" aria-atomic="true">{formatMoney(offer.priceAmount, offer.currencyCode)}</p>
       <dl className="purchase-facts">
         {condition && <div><dt>{t('product.p1.condition')}</dt><dd>{condition}</dd></div>}
         {availability && <div><dt>{t('product.compare.availability')}</dt><dd>{t(availability)}</dd></div>}
       </dl>
       <OfferShipping offer={offer} />
-      <MerchantLink offer={offer} className="purchase-cta" />
+      {product.variationGroup && offer.merchant?.code === 'ebay' && offer.availability === 'out_of_stock'
+        ? <span role="link" aria-disabled="true" className="purchase-cta">{t('product.availability.out_of_stock')}</span>
+        : <MerchantLink offer={offer} className="purchase-cta" />}
       {offers.length > 1 && <a className="purchase-compare" href="#product-offers">{t('common.compareOffers', { count: offers.length })} ↓</a>}
     </> : <p>{t('product.noOffers')}</p>}
   </section>;

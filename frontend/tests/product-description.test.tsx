@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { I18nProvider } from '../src/i18n/I18nContext';
 import { ProductDescription } from '../src/components/ProductDescription';
-import { parseProductDescription, previewProductDescription } from '../src/lib/product-description';
+import { parseProductDescription } from '../src/lib/product-description';
 
 const render = (view: React.ReactNode) => renderToStaticMarkup(<I18nProvider>{view}</I18nProvider>);
 
@@ -19,20 +19,14 @@ test('description parser preserves paragraphs, bullet lists and safe section hea
   ]);
 });
 
-test('long descriptions preview without losing content when expanded', () => {
+test('long descriptions remain fully accessible in one keyboard-scrollable region', () => {
   const text = Array.from({ length: 30 }, (_, index) => `Paragraph ${index} ${'detail '.repeat(18)}`).join('\n\n');
-  const blocks = parseProductDescription(text);
-  const preview = previewProductDescription(blocks);
-  assert.ok(preview.hasMore);
-  assert.ok(preview.blocks.length < blocks.length);
-  const collapsed = render(<ProductDescription text={text} />);
-  const expanded = render(<ProductDescription text={text} initiallyExpanded />);
-  assert.ok(collapsed.includes('Show more'));
-  assert.ok(!collapsed.includes('Paragraph 29'));
-  assert.ok(expanded.includes('Show less'));
-  assert.ok(expanded.includes('Paragraph 29'));
-  assert.ok(collapsed.includes('aria-expanded="false"'));
-  assert.ok(expanded.includes('aria-expanded="true"'));
+  const html = render(<ProductDescription text={text} />);
+  assert.ok(html.includes('Paragraph 29'));
+  assert.ok(html.includes('tabindex="0"'));
+  assert.ok(html.includes('role="region"'));
+  assert.ok(!html.includes('Show more'));
+  assert.ok(!html.includes('Show less'));
 });
 
 test('pathological block counts keep the remaining description text', () => {

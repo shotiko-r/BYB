@@ -1,0 +1,402 @@
+{
+  "items": [
+    {
+      "itemId": "v1|227133051766|526414814371",
+      "title": "Never Activated/Never Used Apple iPhone 16e  - Unlocked *Choose Color & Storage",
+      "price": {
+        "value": "469.99",
+        "currency": "USD"
+      },
+      "itemWebUrl": "https://www.ebay.com/itm/227133051766?var=526414814371",
+      "image": {
+        "imageUrl": "https://i.ebayimg.com/images/g/QgAAAeSwDGVpj1Ns/s-l1600.jpg",
+        "width": 1034,
+        "height": 1600
+      },
+      "additionalImages": [
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/o8sAAeSwl~Zpj1Ns/s-l1600.jpg",
+          "width": 1063,
+          "height": 1600
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/ecIAAeSwgMRoysqk/s-l1600.jpg",
+          "width": 887,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/kywAAeSwwatoysqk/s-l1600.jpg",
+          "width": 533,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/lSMAAeSwholoysqj/s-l1600.jpg",
+          "width": 900,
+          "height": 940
+        }
+      ],
+      "buyingOptions": [
+        "FIXED_PRICE"
+      ],
+      "estimatedAvailabilities": [
+        {
+          "deliveryOptions": [
+            "SHIP_TO_HOME"
+          ],
+          "availabilityThresholdType": "MORE_THAN",
+          "availabilityThreshold": 10,
+          "estimatedAvailabilityStatus": "IN_STOCK",
+          "estimatedSoldQuantity": 99,
+          "estimatedRemainingQuantity": 150
+        }
+      ],
+      "primaryItemGroup": {
+        "itemGroupId": "227133051766",
+        "itemGroupType": "SELLER_DEFINED_VARIATIONS"
+      },
+      "localizedAspects": [
+        {
+          "type": "STRING",
+          "name": "Color",
+          "value": "Black"
+        },
+        {
+          "type": "STRING",
+          "name": "Storage",
+          "value": "128 GB"
+        }
+      ]
+    },
+    {
+      "itemId": "v1|227133051766|526414814372",
+      "title": "Never Activated/Never Used Apple iPhone 16e  - Unlocked *Choose Color & Storage",
+      "price": {
+        "value": "619.99",
+        "currency": "USD"
+      },
+      "itemWebUrl": "https://www.ebay.com/itm/227133051766?var=526414814372",
+      "image": {
+        "imageUrl": "https://i.ebayimg.com/images/g/QgAAAeSwDGVpj1Ns/s-l1600.jpg",
+        "width": 1034,
+        "height": 1600
+      },
+      "additionalImages": [
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/o8sAAeSwl~Zpj1Ns/s-l1600.jpg",
+          "width": 1063,
+          "height": 1600
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/ecIAAeSwgMRoysqk/s-l1600.jpg",
+          "width": 887,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/kywAAeSwwatoysqk/s-l1600.jpg",
+          "width": 533,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/lSMAAeSwholoysqj/s-l1600.jpg",
+          "width": 900,
+          "height": 940
+        }
+      ],
+      "buyingOptions": [
+        "FIXED_PRICE"
+      ],
+      "estimatedAvailabilities": [
+        {
+          "deliveryOptions": [
+            "SHIP_TO_HOME"
+          ],
+          "estimatedAvailabilityStatus": "IN_STOCK",
+          "estimatedAvailableQuantity": 5,
+          "estimatedSoldQuantity": 24,
+          "estimatedRemainingQuantity": 5
+        }
+      ],
+      "primaryItemGroup": {
+        "itemGroupId": "227133051766",
+        "itemGroupType": "SELLER_DEFINED_VARIATIONS"
+      },
+      "localizedAspects": [
+        {
+          "type": "STRING",
+          "name": "Color",
+          "value": "Black"
+        },
+        {
+          "type": "STRING",
+          "name": "Storage",
+          "value": "256 GB"
+        }
+      ]
+    },
+    {
+      "itemId": "v1|227133051766|526414814373",
+      "title": "Never Activated/Never Used Apple iPhone 16e  - Unlocked *Choose Color & Storage",
+      "price": {
+        "value": "469.99",
+        "currency": "USD"
+      },
+      "itemWebUrl": "https://www.ebay.com/itm/227133051766?var=526414814373",
+      "image": {
+        "imageUrl": "https://i.ebayimg.com/images/g/sCkAAeSwwsBpj1Oc/s-l1600.jpg",
+        "width": 1099,
+        "height": 1600
+      },
+      "additionalImages": [
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/Hm4AAeSwKG5pj1Oc/s-l1600.jpg",
+          "width": 982,
+          "height": 1600
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/F2MAAeSwqNloyssD/s-l1600.jpg",
+          "width": 887,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/odYAAeSwUeFoyssC/s-l1600.jpg",
+          "width": 533,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/Eo4AAeSw7vdoyssC/s-l1600.jpg",
+          "width": 900,
+          "height": 940
+        }
+      ],
+      "buyingOptions": [
+        "FIXED_PRICE"
+      ],
+      "estimatedAvailabilities": [
+        {
+          "deliveryOptions": [
+            "SHIP_TO_HOME"
+          ],
+          "availabilityThresholdType": "MORE_THAN",
+          "availabilityThreshold": 10,
+          "estimatedAvailabilityStatus": "IN_STOCK",
+          "estimatedSoldQuantity": 46,
+          "estimatedRemainingQuantity": 45
+        }
+      ],
+      "primaryItemGroup": {
+        "itemGroupId": "227133051766",
+        "itemGroupType": "SELLER_DEFINED_VARIATIONS"
+      },
+      "localizedAspects": [
+        {
+          "type": "STRING",
+          "name": "Color",
+          "value": "White"
+        },
+        {
+          "type": "STRING",
+          "name": "Storage",
+          "value": "128 GB"
+        }
+      ]
+    },
+    {
+      "itemId": "v1|227133051766|526414814374",
+      "title": "Never Activated/Never Used Apple iPhone 16e  - Unlocked *Choose Color & Storage",
+      "price": {
+        "value": "619.99",
+        "currency": "USD"
+      },
+      "itemWebUrl": "https://www.ebay.com/itm/227133051766?var=526414814374",
+      "image": {
+        "imageUrl": "https://i.ebayimg.com/images/g/sCkAAeSwwsBpj1Oc/s-l1600.jpg",
+        "width": 1099,
+        "height": 1600
+      },
+      "additionalImages": [
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/Hm4AAeSwKG5pj1Oc/s-l1600.jpg",
+          "width": 982,
+          "height": 1600
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/F2MAAeSwqNloyssD/s-l1600.jpg",
+          "width": 887,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/odYAAeSwUeFoyssC/s-l1600.jpg",
+          "width": 533,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/Eo4AAeSw7vdoyssC/s-l1600.jpg",
+          "width": 900,
+          "height": 940
+        }
+      ],
+      "buyingOptions": [
+        "FIXED_PRICE"
+      ],
+      "estimatedAvailabilities": [
+        {
+          "deliveryOptions": [
+            "SHIP_TO_HOME"
+          ],
+          "estimatedAvailabilityStatus": "OUT_OF_STOCK",
+          "estimatedAvailableQuantity": 0,
+          "estimatedSoldQuantity": 12,
+          "estimatedRemainingQuantity": 0
+        }
+      ],
+      "primaryItemGroup": {
+        "itemGroupId": "227133051766",
+        "itemGroupType": "SELLER_DEFINED_VARIATIONS"
+      },
+      "localizedAspects": [
+        {
+          "type": "STRING",
+          "name": "Color",
+          "value": "White"
+        },
+        {
+          "type": "STRING",
+          "name": "Storage",
+          "value": "256 GB"
+        }
+      ]
+    },
+    {
+      "itemId": "v1|227133051766|526639161798",
+      "title": "Never Activated/Never Used Apple iPhone 16e  - Unlocked *Choose Color & Storage",
+      "price": {
+        "value": "649.99",
+        "currency": "USD"
+      },
+      "itemWebUrl": "https://www.ebay.com/itm/227133051766?var=526639161798",
+      "image": {
+        "imageUrl": "https://i.ebayimg.com/images/g/QgAAAeSwDGVpj1Ns/s-l1600.jpg",
+        "width": 1034,
+        "height": 1600
+      },
+      "additionalImages": [
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/o8sAAeSwl~Zpj1Ns/s-l1600.jpg",
+          "width": 1063,
+          "height": 1600
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/ecIAAeSwgMRoysqk/s-l1600.jpg",
+          "width": 887,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/kywAAeSwwatoysqk/s-l1600.jpg",
+          "width": 533,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/lSMAAeSwholoysqj/s-l1600.jpg",
+          "width": 900,
+          "height": 940
+        }
+      ],
+      "buyingOptions": [
+        "FIXED_PRICE"
+      ],
+      "estimatedAvailabilities": [
+        {
+          "deliveryOptions": [
+            "SHIP_TO_HOME"
+          ],
+          "estimatedAvailabilityStatus": "OUT_OF_STOCK",
+          "estimatedAvailableQuantity": 0,
+          "estimatedSoldQuantity": 0,
+          "estimatedRemainingQuantity": 0
+        }
+      ],
+      "primaryItemGroup": {
+        "itemGroupId": "227133051766",
+        "itemGroupType": "SELLER_DEFINED_VARIATIONS"
+      },
+      "localizedAspects": [
+        {
+          "type": "STRING",
+          "name": "Color",
+          "value": "Black"
+        },
+        {
+          "type": "STRING",
+          "name": "Storage",
+          "value": "512 GB"
+        }
+      ]
+    },
+    {
+      "itemId": "v1|227133051766|526639161799",
+      "title": "Never Activated/Never Used Apple iPhone 16e  - Unlocked *Choose Color & Storage",
+      "price": {
+        "value": "699.99",
+        "currency": "USD"
+      },
+      "itemWebUrl": "https://www.ebay.com/itm/227133051766?var=526639161799",
+      "image": {
+        "imageUrl": "https://i.ebayimg.com/images/g/sCkAAeSwwsBpj1Oc/s-l1600.jpg",
+        "width": 1099,
+        "height": 1600
+      },
+      "additionalImages": [
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/Hm4AAeSwKG5pj1Oc/s-l1600.jpg",
+          "width": 982,
+          "height": 1600
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/F2MAAeSwqNloyssD/s-l1600.jpg",
+          "width": 887,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/odYAAeSwUeFoyssC/s-l1600.jpg",
+          "width": 533,
+          "height": 1080
+        },
+        {
+          "imageUrl": "https://i.ebayimg.com/images/g/Eo4AAeSw7vdoyssC/s-l1600.jpg",
+          "width": 900,
+          "height": 940
+        }
+      ],
+      "buyingOptions": [
+        "FIXED_PRICE"
+      ],
+      "estimatedAvailabilities": [
+        {
+          "deliveryOptions": [
+            "SHIP_TO_HOME"
+          ],
+          "estimatedAvailabilityStatus": "OUT_OF_STOCK",
+          "estimatedAvailableQuantity": 0,
+          "estimatedSoldQuantity": 1,
+          "estimatedRemainingQuantity": 0
+        }
+      ],
+      "primaryItemGroup": {
+        "itemGroupId": "227133051766",
+        "itemGroupType": "SELLER_DEFINED_VARIATIONS"
+      },
+      "localizedAspects": [
+        {
+          "type": "STRING",
+          "name": "Color",
+          "value": "White"
+        },
+        {
+          "type": "STRING",
+          "name": "Storage",
+          "value": "512 GB"
+        }
+      ]
+    }
+  ]
+}

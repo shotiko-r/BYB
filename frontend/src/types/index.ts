@@ -68,6 +68,7 @@ export type Offer = {
 };
 
 export type ProductWithOffers = Product & {
+  variationGroup?: import('@byb/shared/types').VariationGroup;
   offers: Offer[];
   merchant?: Pick<Merchant, 'id' | 'code' | 'name' | 'logoUrl'>;
   category?: Category;

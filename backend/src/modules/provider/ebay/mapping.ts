@@ -105,7 +105,7 @@ function imageUrls(primary: unknown, ...containers: unknown[]): string[] {
   }
   return images;
 }
-function readAspects(input: unknown): Aspect[] {
+export function readAspects(input: unknown): Aspect[] {
   if (!Array.isArray(input)) return [];
   const aspects: Aspect[] = [];
   for (const entry of input) {

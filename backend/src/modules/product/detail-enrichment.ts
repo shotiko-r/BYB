@@ -37,10 +37,11 @@ function mergeDetail(product: ProductWithOffers, detail: ProviderProduct): Produ
   const aspects = detailAspects(detail);
   const description = typeof detail.description === 'string' ? detail.description.trim() : '';
   const imageUrl = product.imageUrl ?? detail.imageUrl ?? null;
-  if (!description && !images.length && !aspects.length && imageUrl === product.imageUrl) return product;
+  if (!detail.variationGroup && !description && !images.length && !aspects.length && imageUrl === product.imageUrl) return product;
   return {
     ...product,
     description: description || product.description,
+    ...(detail.variationGroup ? { variationGroup: detail.variationGroup } : {}),
     imageUrl,
     attributes: {
       ...product.attributes,
@@ -77,7 +78,7 @@ export class EbayProductDetailEnricher implements ProductDetailEnricher {
         return product;
       }
       if (!detail || detail.externalId !== offer.externalProductId) return product;
-      this.remember(key, detail);
+      if (!detail.attributes?.variationLookupFailed) this.remember(key, detail);
     }
     return mergeDetail(product, detail);
   }

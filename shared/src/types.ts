@@ -120,8 +120,25 @@ export const SearchOptionsSchema = z.object({
 });
 export type SearchOptions = z.infer<typeof SearchOptionsSchema>;
 
+// Detail-only, public shopper data. Never written to product/offer persistence.
+export const VariationGroupSchema = z.object({
+  dimensions: z.array(z.object({ name: z.string().min(1).max(80), values: z.array(z.string().min(1).max(500)).max(100) })).max(8),
+  variants: z.array(z.object({
+    externalProductId: z.string().min(1).max(200),
+    selections: z.record(z.string().max(500)),
+    priceAmount: z.number().int().nonnegative().max(2147483647),
+    currencyCode: z.string().regex(/^[A-Z]{3}$/),
+    images: z.array(z.string().url()).max(12),
+    availability: OfferSchema.shape.availability,
+    destinationUrl: z.string().url(),
+    shippingInfo: z.record(z.unknown()),
+  })).max(100),
+});
+export type VariationGroup = z.infer<typeof VariationGroupSchema>;
+
 export const ProductWithOffersSchema = ProductSchema.extend({
   offers: z.array(OfferSchema),
+  variationGroup: VariationGroupSchema.optional(),
   merchant: MerchantSchema.optional(),
   category: CategorySchema.optional(),
 });
@@ -173,6 +190,7 @@ export const SearchResultSchema = z.object({
 export type SearchResult = z.infer<typeof SearchResultSchema>;
 
 export const ProviderProductSchema = z.object({
+  variationGroup: VariationGroupSchema.optional(),
   externalId: z.string(),
   name: z.string(),
   description: z.string().optional(),

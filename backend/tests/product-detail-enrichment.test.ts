@@ -206,3 +206,26 @@ describe('ProductService detail enrichment', () => {
     expect(getProduct).not.toHaveBeenCalled();
   });
 });
+
+describe('detail-only variation presentation data', () => {
+  it('exposes normalized variations without mutating DB offer prices, identities or attributes', async () => {
+    const variationGroup = { dimensions: [{ name: 'Color', values: ['Black', 'Silver'] }], variants: ['Black', 'Silver'].map((color, index) => ({
+      externalProductId: `v1|1|${index}`, selections: { Color: color }, priceAmount: 10000 + index * 1000,
+      currencyCode: 'USD', images: [], availability: 'in_stock' as const, destinationUrl: `https://www.ebay.com/itm/1?var=${index}`, shippingInfo: {},
+    })) };
+    const original = product();
+    const result = await new EbayProductDetailEnricher(registryWith(provider(vi.fn(async () => detail({ variationGroup }))))).enrich(original, 'GE');
+    expect(result.variationGroup).toEqual(variationGroup);
+    expect(result.offers).toBe(original.offers);
+    expect(result.attributes).not.toHaveProperty('variationGroup');
+    expect(original).not.toHaveProperty('variationGroup');
+  });
+  it('does not cache failed optional group enrichment or expose its internal retry marker', async () => {
+    const get = vi.fn(async () => detail({ attributes: { variationLookupFailed: true } }));
+    const enricher = new EbayProductDetailEnricher(registryWith(provider(get)));
+    const result = await enricher.enrich(product(), 'GE');
+    await enricher.enrich(product(), 'GE');
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(result.attributes).not.toHaveProperty('variationLookupFailed');
+  });
+});

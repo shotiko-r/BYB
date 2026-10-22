@@ -329,6 +329,12 @@
     "copyright": "© {{year}} BYB. All rights reserved. Not an online store — we help you compare before you buy."
   },
   "product": {
+    "p22": {
+      "options": "Choose your options",
+      "choose": "Choose an option",
+      "reset": "Clear selections",
+      "hint": "Only available combinations can be selected. Clear selections to explore other combinations."
+    },
     "p1": {
       "shipping": "Shipping",
       "service": "Shipping service",
