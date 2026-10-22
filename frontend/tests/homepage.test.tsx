@@ -1,5 +1,4 @@
 import React from 'react';
-import { getAllMockProducts } from '../../backend/src/modules/provider/mock/mock-data';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -77,8 +76,13 @@ test('Electronics opens the catalog-backed headphones query without an invented 
     assert.equal(request?.q, 'headphones');
     assert.equal(request?.market, market);
     assert.equal(request?.category, undefined);
-    // Existing seeded/demo catalog evidence, not an invented broad category match.
-    const matches = getAllMockProducts().filter(product => product.name.toLowerCase().includes(request!.q.toLowerCase()));
+    // Representative existing catalog fixtures, kept local so frontend Docker builds
+    // do not depend on backend source files being copied into the image.
+    const catalog = [
+      { name: 'Sony WH-1000XM5 Wireless Noise Canceling Headphones', category: 'headphones' },
+      { name: 'Samsung Galaxy S24 Ultra 256GB - Used Excellent', category: 'smartphones' },
+    ];
+    const matches = catalog.filter(product => product.name.toLowerCase().includes(request!.q.toLowerCase()));
     assert.ok(matches.length > 0, 'Electronics query must match existing electronics fixtures');
     assert.ok(matches.every(product => product.category === 'headphones'));
     const html = render(<ExploreSection market={market} />);
