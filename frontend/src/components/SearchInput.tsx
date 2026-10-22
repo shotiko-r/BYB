@@ -79,7 +79,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
   const examples = tArray('homepage.hero.examples.items');
 
   return (
-    <form onSubmit={handleSubmit} className={`relative w-full max-w-3xl ${homepage ? "home-request" : ""}`}>
+    <form onSubmit={handleSubmit} className={`search-input relative w-full max-w-3xl ${homepage ? "home-request" : ""}`}>
       <label htmlFor={inputId} className="sr-only">{t('common.search')}</label>
       <div className="relative request-field">
         <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,7 +105,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
           aria-expanded={showSuggestions && suggestions.length > 0}
         />
         {(homepage || !showModes) && (
-          <button type="submit" className={homepage ? 'request-submit' : 'absolute right-2 top-2 bottom-2 px-3 rounded-lg bg-blue-600 text-white text-sm font-medium'} disabled={busy} aria-busy={busy}>
+          <button type="submit" className={homepage ? 'request-submit' : 'search-submit'} disabled={busy} aria-busy={busy}>
             {t(busy ? 'common.searching' : homepage ? 'homepage.hero.cta' : 'common.search')}<span aria-hidden="true">↗</span>
           </button>
         )}

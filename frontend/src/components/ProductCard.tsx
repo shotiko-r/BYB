@@ -28,9 +28,9 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
   return (
     <article
       onClick={() => onClick(product)}
-      className="group min-w-0 bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-pointer"
+      className="product-card group"
     >
-      <div className="aspect-square bg-gray-50 relative overflow-hidden">
+      <div className="product-card-image">
         <ProductImage src={product.imageUrl} alt={product.name}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw" />
         {offerCount > 1 && (
@@ -38,14 +38,10 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             {t(action.key, action.params)}
           </div>
         )}
-        {availability && offer?.availability !== 'in_stock' && (
-          <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-            {availability && t(availability)}
-          </div>
-        )}
+
       </div>
 
-      <div className="p-4">
+      <div className="product-card-body">
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className="font-semibold text-gray-900 line-clamp-2 break-words min-w-0 group-hover:text-blue-600 transition-colors flex-1">
             <button type="button" className="text-left w-full line-clamp-2 break-words" onClick={(e) => { e.stopPropagation(); onClick(product); }}>
@@ -54,7 +50,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           </h3>
         </div>
 
-        {offer && <span className="inline-block max-w-full break-words text-xs font-medium text-gray-700 bg-gray-100 rounded-full px-2.5 py-1 mb-2">
+        {offer && <span className="merchant-badge">
           {merchant || t('product.merchantUnavailable')}
         </span>}
         {brand && (
@@ -64,7 +60,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <div className="flex items-center justify-between">
           <div>
             {offer && (
-              <span className="text-xl font-bold text-gray-900">
+              <span className="product-card-price">
                 {formatMoney(offer.priceAmount, offer.currencyCode)}
               </span>
             )}
@@ -75,11 +71,11 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 
         {offer && <MerchantLink offer={offer} className="mt-3 w-full" />}
         {offerCount <= 1 && <button type="button" onClick={event => { event.stopPropagation(); onClick(product); }}
-          className="mt-3 w-full text-sm text-blue-600 hover:text-blue-700 font-medium">{t(action.key, action.params)}</button>}
+          className="product-card-action">{t(action.key, action.params)}</button>}
         {offerCount > 1 && offer && (
           <button
             onClick={(e) => { e.stopPropagation(); onClick(product); }}
-            className="mt-3 w-full text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center justify-center gap-1"
+            className="product-card-action"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19l9 2m0 0l-2-4m2 4l2-4m-6 11V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2v-2" />

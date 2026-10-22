@@ -8,8 +8,15 @@ export function ProductImage({ src, alt, sizes, priority = false }: {
 }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   if (!src || failedSrc === src) return (
-    <div role="img" aria-label={alt} className="w-full h-full flex items-center justify-center text-gray-400">
-      <span aria-hidden="true">BYB</span>
+    <div role="img" aria-label={alt} className="product-image-fallback">
+      <span aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+          <rect x="3" y="3" width="18" height="18" rx="4" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="m4 17 5-5 4 4 3-3 5 5" />
+        </svg>
+        <span>BYB</span>
+      </span>
     </div>
   );
   return <Image src={src} alt={alt} fill sizes={sizes} priority={priority}

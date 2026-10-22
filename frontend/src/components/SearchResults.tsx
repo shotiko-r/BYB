@@ -78,8 +78,8 @@ export function SearchResultsView({ searchParams, navigate, openProduct = naviga
   const change = (patch: Partial<SearchState>) => navigate(searchHref(state, patch));
   return <div className="flex flex-col min-h-screen">
     <Header markets={MARKETS} selectedMarket={selectedMarket} onMarketChange={market => change({ market: market.code })} />
-    <main className="flex-1 py-8"><div className="container">
-      <div className="mb-6">
+    <main className="search-page flex-1"><div className="byb-container">
+      <div className="search-page-input">
         <SearchInput key={state.q} initialQuery={state.q} market={selectedMarket} onSearch={q => change({ q })} showModes={false} />
       </div>
       <SearchFilters key={`${state.currency}:${state.minPrice}:${state.maxPrice}`} state={state} options={options} onChange={change} pending={pending} />
@@ -93,12 +93,12 @@ export function SearchResultsView({ searchParams, navigate, openProduct = naviga
       </div>}
       {!state.q && <div className="py-12 text-center"><h1 className="text-xl font-semibold">{t('search.startSearch')}</h1><p className="mt-2 text-gray-600">{t('search.enterQuery')}</p></div>}
       {data && <>
-        <p role="status" className="mb-4 text-sm text-gray-600">{t('search.bybResults', { count: data.products.length, total: data.total, query: state.q })}</p>
+        <p role="status" className="search-result-count">{t('search.bybResults', { count: data.products.length, total: data.total, query: state.q })}</p>
         {data.products.length === 0 && <div className="py-12 text-center">
           <h2 className="text-xl font-semibold">{t('search.noResults')}</h2><p className="mt-2 text-gray-600">{t('search.tryAdjusting')}</p>
           <button type="button" className="btn-secondary mt-4" onClick={() => change({ q: '' })}>{t('search.clearSearch')}</button>
         </div>}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+        <div className="search-product-grid">
           {data.products.map(product => <ProductCard key={product.id} product={product} market={selectedMarket}
             onClick={() => openProduct(`/product/${product.id}?market=${state.market}`)} />)}
         </div>

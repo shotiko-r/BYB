@@ -45,7 +45,7 @@ function DecisionCard({ product, onProductClick }: {
             {formatMoney(offer.priceAmount, offer.currencyCode)}
           </span>
         )}
-        <span className="decision-merchant">
+        <span className="decision-merchant merchant-badge">
           {merchantName(offer?.merchant) || t('product.merchantUnavailable')}
           {availability && <> · {t(availability)}</>}
         </span>
