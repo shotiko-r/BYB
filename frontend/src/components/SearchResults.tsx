@@ -108,6 +108,6 @@ export function SearchResultsView({ searchParams, navigate, openProduct = naviga
           <button type="button" className="btn-secondary" disabled={state.page >= data.totalPages || pending} onClick={() => change({ page: state.page + 1 })}>{t('search.next')}</button>
         </nav>}
       </>}
-    </div></main><Footer />
+    </div></main><Footer market={selectedMarket.code} />
   </div>;
 }

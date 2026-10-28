@@ -75,7 +75,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
             <p className="product-state-copy">{t('common.loading')}</p>
           </div>
         </main>
-        <Footer />
+        <Footer market={selectedMarket.code} />
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
             </a>
           </div>
         </main>
-        <Footer />
+        <Footer market={selectedMarket.code} />
       </div>
     );
   }
@@ -105,7 +105,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
     <div className="flex flex-col min-h-screen">
       <Header markets={markets} selectedMarket={selectedMarket} onMarketChange={handleMarketChange} />
       <ProductDetailContent product={product} market={selectedMarket} />
-      <Footer />
+      <Footer market={selectedMarket.code} />
     </div>
   );
 }

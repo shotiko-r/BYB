@@ -1,3 +1,16 @@
+export const categoryQuickLinks: Record<string, readonly [string, string][]> = {
+  electronics: [['Phones','phone'],['Headphones','headphones'],['Laptops','laptop'],['Cameras','camera'],['Gaming','gaming'],['Smart Home','smart home'],['Accessories','phone accessories']],
+  auto: [['Brakes','brake pads'],['Lighting','car lights'],['Interior','car interior'],['Exterior','car exterior'],['Electronics','car electronics'],['Tools','car tools'],['Accessories','car accessories']],
+  home: [['Kitchen Appliances','kitchen appliances'],['Coffee','coffee maker'],['Cleaning','cleaning'],['Furniture','furniture'],['Storage','storage'],['Home Improvement','home improvement']],
+  fashion: [['Clothing','clothing'],['Shoes','shoes'],['Bags','bags'],['Accessories','fashion accessories']],
+  outdoors: [['Camping','camping'],['Cycling','cycling'],['Fitness','fitness'],['Hiking','hiking']],
+  tools: [['Power Tools','power tools'],['Hand Tools','hand tools'],['Electrical','electrical tools'],['Workshop','workshop tools'],['Measuring','measuring tools']],
+  beauty: [['Skincare','skincare'],['Hair Care','hair care'],['Grooming','grooming'],['Beauty Tools','beauty tools']],
+  kids: [['Toys','toys'],['Games','board games'],['Learning','learning toys'],['Outdoor Play','outdoor toys']],
+};
+export function querySearchHref(query: string, market: string) {
+  return `/search?${new URLSearchParams({ q: query, market })}`;
+}
 // Curated entry queries, not claims about backend taxonomy or inventory coverage.
 export const homepageCategories = [
   { id: 'electronics', query: 'headphones', path: 'M5 4h14v11H5z M9 20h6 M12 15v5' },

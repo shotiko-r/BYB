@@ -13,19 +13,15 @@ import { ExploreSection } from '@/components/ExploreSection';
 import { DiscoverySections } from '@/components/DiscoverySections';
 import { MarketSection } from '@/components/MarketSection';
 import { api } from '@/lib/api';
+import { useNavigationMarket } from '@/lib/use-navigation-market';
+import { navigationMarkets as MOCK_MARKETS } from '@/lib/navigation-markets';
 import type { Market, ProductWithOffers } from '@/types';
-
-const MOCK_MARKETS: Market[] = [
-  { id: '1', code: 'GE', name: 'Georgia', locale: 'ka-GE', language: 'ka', currencyCode: 'GEL', currencySymbol: '₾', isActive: true, createdAt: '', updatedAt: '' },
-  { id: '2', code: 'AM', name: 'Armenia', locale: 'hy-AM', language: 'hy', currencyCode: 'AMD', currencySymbol: '֏', isActive: true, createdAt: '', updatedAt: '' },
-  { id: '3', code: 'AZ', name: 'Azerbaijan', locale: 'az-AZ', language: 'az', currencyCode: 'AZN', currencySymbol: '₼', isActive: true, createdAt: '', updatedAt: '' },
-];
 
 export default function HomePage() {
   const router = useRouter();
   const { t } = useI18n();
   const [markets] = useState<Market[]>(MOCK_MARKETS);
-  const [selectedMarket, setSelectedMarket] = useState<Market>(MOCK_MARKETS[0]);
+  const [selectedMarket, setSelectedMarket] = useNavigationMarket();
   const [productsBySection, setProductsBySection] = useState<Record<string, ProductWithOffers[]>>({});
   const [unavailableSections, setUnavailableSections] = useState<string[]>([]);
   const [retryCount, setRetryCount] = useState(0);
@@ -87,7 +83,7 @@ export default function HomePage() {
         <HomeBrowsingMemory />
         <MarketSection market={selectedMarket} />
       </main>
-      <Footer />
+      <Footer market={selectedMarket.code} />
     </div>
   );
 }
