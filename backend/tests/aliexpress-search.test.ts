@@ -10,6 +10,7 @@ vi.mock('../src/config/database.js', () => db);
 vi.mock('../src/modules/feed/http.js', () => { throw new Error('Search imported feed transport'); });
 vi.mock('../src/modules/feed/importer.js', () => { throw new Error('Search imported feed importer'); });
 import { FeedRepository } from '../src/modules/feed/repository.js';
+import { importFmtc } from '../src/modules/feed/fmtc.js';
 import { mapAliExpressRow } from '../src/modules/feed/merchants/aliexpress.js';
 import { providerRegistry, InMemoryProviderRegistry } from '../src/modules/provider/registry.js';
 import { registerProviders } from '../src/modules/provider/register.js';
@@ -84,6 +85,25 @@ describe.skipIf(!url)('AliExpress search: actual HTTP routes and disposable Post
     await app.close();
     await pool.query(`DROP SCHEMA ${schema} CASCADE`);
     await pool.end();
+  });
+
+  it('imports one FMTC page idempotently and exposes it through search with unknown shipping', async () => {
+    const raw = { product_id: '123', merchant_id: 62058, network_id: 2, label: 'Sony WH-1000XM5', price: 99.5, sale_price: 0, currency_code: 'USD', affiliate_url: 'https://example.com/affiliate' };
+    const transport = async () => new Response(JSON.stringify({ data: [raw] }));
+    expect(await importFmtc({ token: 'synthetic' }, feedRepo, transport as typeof fetch)).toBe(1);
+    expect(await importFmtc({ token: 'synthetic' }, feedRepo, transport as typeof fetch)).toBe(1);
+    expect((await pool.query('SELECT count(*)::int AS n FROM products')).rows[0].n).toBe(1);
+    const offer = (await pool.query('SELECT * FROM offers')).rows[0];
+    expect(offer.shipping_info).toEqual({});
+    expect(offer.affiliate_metadata._byb).toMatchObject({ sourceType: 'fmtc-feed', fmtc: { merchantId: 62058, networkId: 2 } });
+    await pool.query(`UPDATE offers SET affiliate_metadata=jsonb_set(affiliate_metadata, '{_byb,feed,lastSeenAt}',
+      to_jsonb(to_char((CURRENT_TIMESTAMP - INTERVAL '1 minute') AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))`);
+    const response = await search();
+    expect(response.statusCode, response.body).toBe(200);
+    const result = SearchResultSchema.parse(response.json());
+    expect(result.products).toHaveLength(1);
+    expect(result.products[0]?.name).toBe(raw.label);
+    expect(result.products[0]?.offers[0]?.priceAmount).toBe(9950);
   });
 
   it('returns separate live eBay and persisted AliExpress cards with real currency, merchant and tracked links', async () => {

@@ -17,7 +17,7 @@ export function feedSearchPolicy(registry: ProviderRegistry): FeedSearchPolicy |
 /** Only feed offers receive freshness/market checks; API eBay semantics are unchanged. */
 export function feedEligibilitySql(policy: FeedSearchPolicy | undefined, params: unknown[]): string {
   const detected = `(m.code = 'aliexpress' AND (COALESCE(o.affiliate_metadata #>> '{_byb,provenance,mode}', '') = 'real'
-    OR COALESCE(o.affiliate_metadata #>> '{_byb,sourceType}', '') = 'admitad-feed'))`;
+    OR COALESCE(o.affiliate_metadata #>> '{_byb,sourceType}', '') IN ('admitad-feed', 'fmtc-feed')))`;
   if (!policy) return ` AND NOT ${detected}`;
   params.push([...policy.markets], policy.maxAgeHours,
     String.raw`$._byb.feed.lastSeenAt.datetime("YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"")`);
@@ -27,8 +27,11 @@ export function feedEligibilitySql(policy: FeedSearchPolicy | undefined, params:
   return ` AND (NOT ${detected} OR (
     o.affiliate_metadata #> '{_byb,provenance}' = '{"version":1,"provider":"aliexpress","mode":"real","environment":"production"}'::jsonb
     AND m.code = 'aliexpress'
-    AND o.affiliate_metadata #>> '{_byb,sourceType}' = 'admitad-feed'
-    AND o.affiliate_metadata #>> '{_byb,feed,key}' = 'aliexpress-ww'
+    AND ((o.affiliate_metadata #>> '{_byb,sourceType}' = 'admitad-feed'
+      AND o.affiliate_metadata #>> '{_byb,feed,key}' = 'aliexpress-ww')
+      OR (o.affiliate_metadata #>> '{_byb,sourceType}' = 'fmtc-feed'
+      AND o.affiliate_metadata #>> '{_byb,feed,key}' = 'fmtc-rakuten-62058'
+      AND o.affiliate_metadata #> '{_byb,fmtc}' = '{"merchantId":62058,"networkId":2}'::jsonb))
     AND EXISTS (SELECT 1 FROM markets fm JOIN market_merchants mm ON mm.market_id = fm.id
       WHERE fm.id = o.market_id AND fm.is_active = true AND fm.code = ANY($${market}::text[])
       AND mm.merchant_id = m.id AND mm.is_enabled = true)

@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { Pool, PoolClient } from 'pg';
 import type { AliExpressFeedProduct } from './merchants/aliexpress.js';
+import type { FmtcProduct } from './fmtc.js';
 
 export const DEFAULT_FEED_BATCH_SIZE = 100;
 export function validateBatchSize(size: number): void {
@@ -34,7 +35,7 @@ export class FeedRepository {
     }
   }
 
-  async writeBatch(products: readonly AliExpressFeedProduct[], context: {
+  async writeBatch(products: readonly (AliExpressFeedProduct | FmtcProduct)[], context: {
     feedKey: string; markets: readonly string[]; syncRunId: string;
   }): Promise<number> {
     validateBatchSize(products.length);
@@ -54,19 +55,20 @@ export class FeedRepository {
       for (const product of [...unique.values()].sort((a, b) => a.sourceIdentity.localeCompare(b.sourceIdentity))) {
         // Recompute rather than trust caller-supplied identity. No titles or URLs in keys.
         const identity = `aliexpress-${createHash('sha256').update(`${context.feedKey}\0${product.externalProductId}`).digest('hex')}`;
-        if (identity !== product.sourceIdentity || context.feedKey !== 'aliexpress-ww') throw new FeedPersistenceError('INVALID_IDENTITY');
+        if (identity !== product.sourceIdentity || !['aliexpress-ww', 'fmtc-rakuten-62058'].includes(context.feedKey)) throw new FeedPersistenceError('INVALID_IDENTITY');
         // Shared across markets, because the schema's product identity is global.
         await client.query('SELECT pg_advisory_xact_lock($1::bigint)', [createHash('sha256').update(identity).digest().readBigInt64BE().toString()]);
         const existing = await client.query<{ id: string }>('SELECT id FROM products WHERE slug = $1 LIMIT 2', [identity]);
         if (existing.rows.length > 1) throw new FeedPersistenceError('AMBIGUOUS_IDENTITY');
-        const attributes = JSON.stringify({ source: 'admitad-feed', sourceIdentity: identity });
+        const fmtc = context.feedKey === 'fmtc-rakuten-62058';
+        const attributes = JSON.stringify({ ...(fmtc ? product.attributes : {}), source: fmtc ? 'fmtc-feed' : 'admitad-feed', sourceIdentity: identity });
         let productId = existing.rows[0]?.id;
         if (productId) {
           await client.query(`UPDATE products SET name=$2, image_url=$3, attributes=$4, is_active=true,
-            updated_at=NOW() WHERE id=$1`, [productId, product.name, product.imageUrl ?? null, attributes]);
+            description=CASE WHEN $7 THEN $5 ELSE description END, brand=CASE WHEN $7 THEN $6 ELSE brand END, updated_at=NOW() WHERE id=$1`, [productId, product.name, product.imageUrl ?? null, attributes, product.description ?? null, product.brand ?? null, fmtc]);
         } else {
-          const inserted = await client.query<{ id: string }>(`INSERT INTO products (slug,name,image_url,attributes,category_id)
-            VALUES ($1,$2,$3,$4,$5) RETURNING id`, [identity, product.name, product.imageUrl ?? null, attributes, categoryId]);
+          const inserted = await client.query<{ id: string }>(`INSERT INTO products (slug,name,image_url,attributes,category_id,description,brand)
+            VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`, [identity, product.name, product.imageUrl ?? null, attributes, categoryId, product.description ?? null, product.brand ?? null]);
           productId = inserted.rows[0]!.id;
         }
         const now = new Date().toISOString();
@@ -76,7 +78,7 @@ export class FeedRepository {
           .filter(key => input[key] !== undefined).map(key => [key, input[key]]));
         Object.assign(metadata, { sourceProductId: product.externalProductId, _byb: {
           provenance: { version: 1, provider: 'aliexpress', mode: 'real', environment: 'production' },
-          sourceType: 'admitad-feed', feed: { key: context.feedKey, mapperVersion: 1, syncRunId: context.syncRunId,
+          sourceType: fmtc ? 'fmtc-feed' : 'admitad-feed', ...(fmtc ? { fmtc: { merchantId: 62058, networkId: 2 } } : {}), feed: { key: context.feedKey, mapperVersion: 1, syncRunId: context.syncRunId,
             importedAt: now, lastSeenAt: now, scopeVersion: 1 },
         } });
         for (const marketId of markets) {

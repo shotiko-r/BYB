@@ -166,3 +166,19 @@ from the search path. Run together with the full backend suite:
 ```sh
 BYB_FEED_TEST_DATABASE_URL=postgresql://... npm run test --workspace=backend
 ```
+
+## FMTC Rakuten AliExpress trial import
+
+Set `FMTC_API_TOKEN` in the runtime environment (or the root `.env`) and run
+`npx tsx backend/src/scripts/import-fmtc-feed.ts --apply` with `DATABASE_URL` set.
+This requests exactly one page of at most 10 records for FMTC merchant 62058,
+network 2, and writes through the existing feed repository. The API token is a
+query parameter required by FMTC; do not log request URLs or enable HTTP tracing.
+The command prints only a count or a sanitized error code. It does not remove
+unseen products. An empty page imports nothing. Search requires the existing
+AliExpress persisted-feed search configuration and freshness policy; FMTC and
+Admitad use distinct source identities and provenance. The GE catalog association
+is not a shipping assertion: shipping eligibility and price remain unknown.
+Before production, verify real product data, affiliate links and authorization,
+market eligibility, freshness scheduling, operational monitoring, and the small
+page size with FMTC. This is a bounded trial, not a complete catalog sync.
