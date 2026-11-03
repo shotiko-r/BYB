@@ -171,6 +171,41 @@ test('eBay clickouts remain active when AliExpress is disabled', () => {
   assert.ok(!html.includes('aria-disabled="true"'));
 });
 
+test('FMTC clickouts are source-specific and require a destination', () => {
+  const product = fixture();
+  const offer = product.offers[0];
+  offer.affiliateMetadata = { _byb: { sourceType: 'fmtc-feed' } };
+  for (const view of [<ProductCard key="card" product={product} market={market} onClick={() => {}} />,
+    <ProductDetailContent key="detail" product={product} market={market} />, <ProductOfferSummary key="summary" product={product} />]) {
+    const html = renderView(view, false);
+    assert.ok(html.includes(`href="${destination.replaceAll('&', '&amp;')}"`));
+    assert.ok(html.includes('rel="sponsored nofollow noopener noreferrer"'));
+    assert.ok(html.includes('target="_blank"'));
+  }
+  for (const missing of ['', '   ']) {
+    offer.destinationUrl = missing;
+    const html = renderView(<ProductOfferSummary product={product} />, false);
+    assert.ok(html.includes('aria-disabled="true"'));
+    assert.ok(!html.includes('href="   "'));
+  }
+});
+
+test('Admitad and missing or malformed FMTC source metadata remain blocked by default', () => {
+  const product = fixture();
+  for (const metadata of [{ _byb: { sourceType: 'admitad-feed' } }, {}, { _byb: null },
+    { _byb: [] }, { _byb: 'fmtc-feed' }, { _byb: { sourceType: ['fmtc-feed'] } }]) {
+    product.offers[0].affiliateMetadata = metadata;
+    for (const view of [<ProductCard key="card" product={product} market={market} onClick={() => {}} />,
+      <ProductDetailContent key="detail" product={product} market={market} />, <ProductOfferSummary key="summary" product={product} />]) {
+      const html = renderView(view, false);
+      assert.ok(html.includes('aria-disabled="true"'));
+      assert.ok(!html.includes(`href="${destination.replaceAll('&', '&amp;')}"`));
+    }
+  }
+  product.offers[0].affiliateMetadata = { _byb: { sourceType: 'admitad-feed' } };
+  assert.ok(renderView(<ProductOfferSummary product={product} />, true).includes('Buy on AliExpress'));
+});
+
 test('mixed source currencies never claim a best price or best offer', () => {
   const product = fixture('ebay', 15000);
   product.offers.push({ ...product.offers[0], id: 'gel', externalProductId: 'gel', currencyCode: 'GEL', priceAmount: 10000 });

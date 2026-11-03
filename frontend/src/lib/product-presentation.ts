@@ -86,9 +86,14 @@ export function offerAction(count: number): { key: string; params?: { count: num
   return count > 1 ? { key: 'common.compareOffers', params: { count } } : { key: 'product.viewDetails' };
 }
 
-// NEXT_PUBLIC values are inlined by Next at build time. Fail closed until explicitly enabled.
+// NEXT_PUBLIC values are inlined by Next at build time. Other AliExpress sources fail closed by default.
 export function clickoutEnabled(offer: Offer): boolean {
-  return offer.merchant?.code !== 'aliexpress' || process.env.NEXT_PUBLIC_ALIEXPRESS_CLICKOUT_ENABLED === 'true';
+  if (offer.merchant?.code !== 'aliexpress' || process.env.NEXT_PUBLIC_ALIEXPRESS_CLICKOUT_ENABLED === 'true') return true;
+  const metadata = offer.affiliateMetadata;
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return false;
+  const source = metadata._byb;
+  return !!source && typeof source === 'object' && !Array.isArray(source)
+    && (source as Record<string, unknown>).sourceType === 'fmtc-feed';
 }
 
 // Only consumer-facing scalar specifications; never dump source IDs or nested provider objects.

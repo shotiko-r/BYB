@@ -8,7 +8,7 @@ import type { Offer } from '@/types';
 export function MerchantLink({ offer, className = '' }: { offer: Offer; className?: string }) {
   const { t } = useI18n();
   const merchant = merchantName(offer.merchant);
-  if (!clickoutEnabled(offer) || !offer.destinationUrl) {
+  if (!clickoutEnabled(offer) || !offer.destinationUrl?.trim()) {
     return <span role="link" aria-disabled="true" className={`inline-flex justify-center rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-600 ${className}`}>
       {t('product.linkUnavailable')}
     </span>;
