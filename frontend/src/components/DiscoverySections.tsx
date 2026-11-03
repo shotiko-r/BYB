@@ -82,14 +82,14 @@ export function DiscoverySections(props: DiscoverySectionsProps) {
                     <span className="section-number" aria-hidden="true">0{index + 1}</span>
                     {t(section.titleKey)}
                   </h2>
-                  <p className="text-sm text-gray-500 mt-2">{t(`homepage.discovery.${section.descriptionKey}`)}</p>
+                  <p className="section-heading-note">{t(`homepage.discovery.${section.descriptionKey}`)}</p>
                 </div>
               </div>
               {props.loading ? (
                 <div role="status" aria-label={t('common.loading')}>
                   <span className="sr-only">{t('common.loading')}</span>
                   <div className="decision-grid" aria-hidden="true">{[0, 1, 2, 3].map(slot =>
-                    <div key={slot} className="h-64 animate-pulse rounded-xl bg-gray-100 border border-gray-200" />
+                    <div key={slot} className="discovery-skeleton h-64 animate-pulse" />
                   )}</div>
                 </div>
               ) : props.failed || props.unavailableSections?.includes(key) ? (

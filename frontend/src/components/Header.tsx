@@ -18,7 +18,7 @@ interface HeaderProps {
 
 export function Header({ markets, selectedMarket, onMarketChange }: HeaderProps) {
   const { t } = useI18n();
-  const [open, setOpen] = useState<'discover' | 'categories' | 'mobile' | null>(null);
+  const [open, setOpen] = useState<'discover' | 'categories' | 'mobile' | 'more' | null>(null);
   const root = useRef<HTMLElement>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
   const market = selectedMarket.code;
@@ -39,8 +39,9 @@ export function Header({ markets, selectedMarket, onMarketChange }: HeaderProps)
     window.addEventListener('resize', resize);
     return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); window.removeEventListener('resize', resize); };
   }, [open]);
-  const toggle = (name: 'discover' | 'categories' | 'mobile', button: HTMLButtonElement) => { trigger.current = button; setOpen(open === name ? null : name); };
-  const utilities = <><MarketSelector markets={markets} selectedMarket={selectedMarket} onSelect={onMarketChange} /><LanguageSelector /><ThemeSelector /></>;
+  const toggle = (name: 'discover' | 'categories' | 'mobile' | 'more', button: HTMLButtonElement) => { trigger.current = button; setOpen(open === name ? null : name); };
+  const marketLanguage = <><MarketSelector markets={markets} selectedMarket={selectedMarket} onSelect={onMarketChange} /><LanguageSelector /></>;
+  const utilities = <>{marketLanguage}<ThemeSelector /></>;
   return (
     <header className="byb-header" ref={root}
       onClick={event => { if ((event.target as Element).closest('a')) setOpen(null); }}
@@ -58,7 +59,14 @@ export function Header({ markets, selectedMarket, onMarketChange }: HeaderProps)
           <input type="hidden" name="market" value={market} />
           <button type="submit" aria-label={t('header.search')}><SearchIcon /></button>
         </form>
-        <div className="header-utilities">{utilities}</div>
+        <div className="header-utilities">
+          {marketLanguage}
+          <button className="header-icon-action" aria-label={t('common.more')} aria-expanded={open === 'more'} aria-controls="nav-more" onClick={event => toggle('more', event.currentTarget)}><MoreIcon /></button>
+          <div id="nav-more" className="header-utility-panel" hidden={open !== 'more'}>
+            <ThemeSelector />
+            <Link href={`/affiliate-disclosure?market=${market}`}>{t('footer.links.affiliate')}</Link>
+          </div>
+        </div>
         <div className="header-mobile-actions">
           <Link className="header-icon-action" href={`/search?market=${market}`} aria-label={t('header.search')}><SearchIcon /></Link>
           <button className="header-icon-action" aria-label={t('header.openMenu')} aria-expanded={open === 'mobile'} aria-controls="nav-mobile" onClick={event => toggle('mobile', event.currentTarget)}>☰</button>
@@ -88,5 +96,9 @@ export function Header({ markets, selectedMarket, onMarketChange }: HeaderProps)
 }
 
 function SearchIcon() {
-  return <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>;
+  return <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>;
+}
+
+function MoreIcon() {
+  return <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg>;
 }

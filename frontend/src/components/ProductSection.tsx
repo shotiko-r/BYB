@@ -18,14 +18,14 @@ export function ProductSection({ title, products, market, onProductClick, viewAl
       <section className="py-8" aria-labelledby={title.toLowerCase().replace(/\s+/g, '-')}>
         <div className="px-4">
           <div className="flex items-center justify-between mb-6">
-            <h2 id={title.toLowerCase().replace(/\s+/g, '-')} className="text-2xl font-bold text-gray-900">{title}</h2>
+            <h2 id={title.toLowerCase().replace(/\s+/g, '-')} className="product-section-title">{title}</h2>
             {viewAllHref && (
-              <a href={viewAllHref} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              <a href={viewAllHref} className="product-section-link">
                 View all →
               </a>
             )}
           </div>
-          <div className="text-center py-12 text-gray-500">
+          <div className="product-section-empty">
             {emptyMessage || `No ${title.toLowerCase()} products found.`}
           </div>
         </div>
@@ -37,9 +37,9 @@ export function ProductSection({ title, products, market, onProductClick, viewAl
     <section className="py-8" aria-labelledby={title.toLowerCase().replace(/\s+/g, '-')}>
       <div className="px-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 id={title.toLowerCase().replace(/\s+/g, '-')} className="text-2xl font-bold text-gray-900">{title}</h2>
+          <h2 id={title.toLowerCase().replace(/\s+/g, '-')} className="product-section-title">{title}</h2>
           {viewAllHref && (
-            <a href={viewAllHref} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+            <a href={viewAllHref} className="product-section-link">
               View all →
             </a>
           )}

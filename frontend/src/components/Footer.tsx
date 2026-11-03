@@ -14,6 +14,6 @@ export function Footer({ market = 'GE' }: { market?: string }) {
       <nav aria-label="About BYB"><h3>About BYB</h3><Link href={destination('/about')}>About</Link><Link href={destination('/partners')}>Partner with BYB</Link><Link href={destination('/contact')}>Contact</Link></nav>
       <nav aria-label="Transparency"><h3>Transparency</h3><Link href={destination('/affiliate-disclosure')}>Affiliate disclosure</Link></nav>
     </div>
-    <div className="mt-10 pt-6 border-t border-gray-200"><p className="text-sm text-center">{t('footer.copyright', { year: new Date().getFullYear() })}</p></div>
+    <div className="footer-legal mt-10 pt-6"><p>{t('footer.copyright', { year: new Date().getFullYear() })}</p></div>
   </div></footer>;
 }

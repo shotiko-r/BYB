@@ -9,13 +9,13 @@ export function MerchantLink({ offer, className = '' }: { offer: Offer; classNam
   const { t } = useI18n();
   const merchant = merchantName(offer.merchant);
   if (!clickoutEnabled(offer) || !offer.destinationUrl?.trim()) {
-    return <span role="link" aria-disabled="true" className={`inline-flex justify-center rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-600 ${className}`}>
+    return <span role="link" aria-disabled="true" className={`merchant-link is-disabled ${className}`}>
       {t('product.linkUnavailable')}
     </span>;
   }
   return <a href={offer.destinationUrl} target="_blank" rel="sponsored nofollow noopener noreferrer"
     onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}
-    className={`inline-flex justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 ${className}`}>
+    className={`merchant-link ${className}`}>
     {merchant ? t('product.buyOn', { merchant }) : t('product.visitMerchant')}
   </a>;
 }

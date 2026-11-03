@@ -1,12 +1,12 @@
-/** Two meeting chevrons form a diamond with an open center. */
 export function Logo() {
   return (
     <span className="byb-logo">
-      <svg width="42" height="34" viewBox="0 0 42 34" fill="none" aria-hidden="true">
-        <path d="M21 1 5 17l16 16v-9l-7-7 7-7V1Z" fill="#0F5F4F" />
-        <path d="m21 1 16 16-16 16v-9l7-7-7-7V1Z" fill="#FF9F1C" />
+      <svg className="byb-logo-mark" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <path d="M4.5 6.5 14 16l9.5-9.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M14 16v4.2" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+        <circle cx="14" cy="24.4" r="2.2" fill="var(--byb-amber)" />
       </svg>
-      <span>BYB</span>
+      <span className="byb-logo-wordmark">BYB</span>
     </span>
   );
 }

@@ -67,7 +67,7 @@ export function SearchFilters({ state, options, onChange, pending = false }: {
       </label>
       <button className="filter-apply" type="submit" disabled={!state.currency || pending}>{t('search.applyPrice')}</button>
     </form>
-    {priceError && <p role="alert" className="text-sm text-red-700 mt-2">{t('search.invalidRange')}</p>}
+    {priceError && <p role="alert" className="search-filter-error">{t('search.invalidRange')}</p>}
     <p className="currency-note">{t('search.currencyHelp')}</p>
     <div className="active-filters" aria-label={t('search.activeFilters')}>
       {state.merchant.length > 0 && <button type="button" className="active-filter" onClick={() => onChange({ merchant: [] })}>

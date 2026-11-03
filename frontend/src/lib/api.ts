@@ -33,11 +33,11 @@ function toSearchParams(params: Record<string, string | number | undefined>): UR
 }
 
 export const availabilityLabels = {
-  in_stock: { label: 'In Stock', class: 'text-green-600' },
-  limited: { label: 'Limited Stock', class: 'text-yellow-600' },
-  pre_order: { label: 'Pre-order', class: 'text-blue-600' },
-  out_of_stock: { label: 'Out of Stock', class: 'text-red-600' },
-  unknown: { label: 'Unknown', class: 'text-gray-600' },
+  in_stock: { label: 'In Stock', class: 'availability-in-stock' },
+  limited: { label: 'Limited Stock', class: 'availability-limited' },
+  pre_order: { label: 'Pre-order', class: 'availability-preorder' },
+  out_of_stock: { label: 'Out of Stock', class: 'availability-out' },
+  unknown: { label: 'Unknown', class: 'availability-unknown' },
 } as const;
 
 export const api = {
@@ -89,14 +89,14 @@ export function formatPrice(amount: number, currencyCode: string, currencySymbol
 export function getAvailabilityLabel(availability: string): { label: string; class: string } {
   switch (availability) {
     case 'in_stock':
-      return { label: 'In Stock', class: 'text-green-600' };
+      return { label: 'In Stock', class: 'availability-in-stock' };
     case 'limited':
-      return { label: 'Limited Stock', class: 'text-yellow-600' };
+      return { label: 'Limited Stock', class: 'availability-limited' };
     case 'pre_order':
-      return { label: 'Pre-order', class: 'text-blue-600' };
+      return { label: 'Pre-order', class: 'availability-preorder' };
     case 'out_of_stock':
-      return { label: 'Out of Stock', class: 'text-red-600' };
+      return { label: 'Out of Stock', class: 'availability-out' };
     default:
-      return { label: 'Unknown', class: 'text-gray-600' };
+      return { label: 'Unknown', class: 'availability-unknown' };
   }
 }

@@ -34,7 +34,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <ProductImage src={product.imageUrl} alt={product.name}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw" />
         {offerCount > 1 && (
-          <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full">
+          <div className="product-count-badge">
             {t(action.key, action.params)}
           </div>
         )}
@@ -43,7 +43,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
 
       <div className="product-card-body">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-semibold text-gray-900 line-clamp-2 break-words min-w-0 group-hover:text-blue-600 transition-colors flex-1">
+          <h3 className="line-clamp-2 break-words min-w-0 flex-1">
             <button type="button" className="text-left w-full line-clamp-2 break-words" onClick={(e) => { e.stopPropagation(); onClick(product); }}>
               {product.name}
             </button>
@@ -54,7 +54,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           {merchant || t('product.merchantUnavailable')}
         </span>}
         {brand && (
-          <p className="text-sm text-gray-500 mb-2">{brand}</p>
+          <p className="product-card-brand">{brand}</p>
         )}
 
         <div className="flex items-center justify-between">
@@ -65,9 +65,9 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
               </span>
             )}
           </div>
-          {availability && <span className="text-xs font-medium text-gray-600">{t(availability)}</span>}
+          {availability && <span className="product-card-availability">{t(availability)}</span>}
         </div>
-        {condition && <p className="text-sm text-gray-600 mt-2">{condition}</p>}
+        {condition && <p className="product-card-condition">{condition}</p>}
 
         {offer && <MerchantLink offer={offer} className="mt-3 w-full" />}
         {offerCount <= 1 && <button type="button" onClick={event => { event.stopPropagation(); onClick(product); }}

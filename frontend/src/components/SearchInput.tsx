@@ -82,7 +82,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
     <form onSubmit={handleSubmit} className={`search-input relative w-full max-w-3xl ${homepage ? "home-request" : ""}`}>
       <label htmlFor={inputId} className="sr-only">{t('common.search')}</label>
       <div className="relative request-field">
-        <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="search-field-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
@@ -96,7 +96,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
           onFocus={() => query.length >= 2 && setShowSuggestions(true)}
           onBlur={() => { setShowSuggestions(false); setActiveIndex(-1); }}
           placeholder={placeholder || t('common.searchPlaceholder')}
-          className={`w-full pl-12 ${!homepage && !showModes ? 'pr-32' : 'pr-12'} py-4 text-lg border border-gray-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow shadow-sm`}
+          className={`search-control w-full pl-12 ${!homepage && !showModes ? 'pr-32' : 'pr-12'} py-4 text-lg`}
           autoComplete="off"
           role="combobox"
           aria-controls={listId}
@@ -113,19 +113,19 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
 
       {showModes && (
         <div className="flex items-center gap-2 mt-3">
-          <button type="button" className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors" disabled aria-disabled={true}>
+          <button type="button" className="search-mode" disabled aria-disabled={true}>
             <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <span>{t('homepage.hero.inputModes.photo')}</span>
           </button>
-          <button type="button" className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors" disabled aria-disabled={true}>
+          <button type="button" className="search-mode" disabled aria-disabled={true}>
             <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m0 0a7 7 0 017-7 7 7 0 017 7z" />
             </svg>
             <span>{t('homepage.hero.inputModes.voice')}</span>
           </button>
-          <button type="button" className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors" disabled aria-disabled={true}>
+          <button type="button" className="search-mode" disabled aria-disabled={true}>
             <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102 1.101m0-5.656a4 4 0 115.656 0l4 4a4 4 0 01-5.656 5.656l1.102 1.101m-4.828-4.828a4 4 0 010 5.656l-4 4a4 4 0 01-5.656-5.656l-1.102-1.101m0 0l-1.102 1.101m-4.828-4.828l-1.102-1.101" />
             </svg>
@@ -143,7 +143,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
             onClick={() => {
               submit(item);
             }}
-            className={`px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200 rounded-full transition-colors ${homepage ? "" : "whitespace-nowrap"}`}
+            className={`search-example ${homepage ? "" : "whitespace-nowrap"}`}
           >
             {item}
           </button>
@@ -151,7 +151,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
-        <ul id={listId} role="listbox" className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+        <ul id={listId} role="listbox" className="search-suggestions absolute top-full left-0 right-0 mt-1 z-50 overflow-hidden">
           {suggestions.map((suggestion, index) => (
             <li key={suggestion} id={`${listId}-${index}`} role="option" aria-selected={index === activeIndex}>
               <button
@@ -162,7 +162,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
                 onClick={() => {
                   submit(suggestion);
                 }}
-                className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors border-t border-gray-100 first:border-t-0 ${index === activeIndex ? 'bg-blue-50' : ''}`}
+                className={`search-suggestion ${index === activeIndex ? 'is-active' : ''}`}
               >
                 {suggestion}
               </button>

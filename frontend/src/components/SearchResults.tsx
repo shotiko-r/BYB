@@ -83,19 +83,19 @@ export function SearchResultsView({ searchParams, navigate, openProduct = naviga
         <SearchInput key={state.q} initialQuery={state.q} market={selectedMarket} onSearch={q => change({ q })} showModes={false} />
       </div>
       <SearchFilters key={`${state.currency}:${state.minPrice}:${state.maxPrice}`} state={state} options={options} onChange={change} pending={pending} />
-      {catalog?.market === state.market && catalog.error && <div role="alert" className="mb-4 text-sm text-gray-700">
+      {catalog?.market === state.market && catalog.error && <div role="alert" className="search-inline-error">
         {t('search.optionsError')} <button type="button" className="underline" onClick={() => setCatalogRetry(value => value + 1)}>{t('common.retry')}</button>
       </div>}
-      {validation && <p role="alert" className="mb-4 rounded-lg bg-yellow-50 p-4 text-yellow-800">{t(`search.${validation}`)}</p>}
-      {loading && <p role="status" className="mb-4 text-gray-600">{t('common.loading')}</p>}
-      {error && <div role="alert" className="mb-4 rounded-lg bg-yellow-50 p-4 text-yellow-800">
+      {validation && <p role="alert" className="search-alert">{t(`search.${validation}`)}</p>}
+      {loading && <p role="status" className="search-loading">{t('common.loading')}</p>}
+      {error && <div role="alert" className="search-alert">
         <p>{t('search.requestError')}</p><button type="button" className="btn-secondary mt-2" onClick={() => setRetry(value => value + 1)}>{t('common.retry')}</button>
       </div>}
-      {!state.q && <div className="py-12 text-center"><h1 className="text-xl font-semibold">{t('search.startSearch')}</h1><p className="mt-2 text-gray-600">{t('search.enterQuery')}</p></div>}
+      {!state.q && <div className="py-12 text-center"><h1 className="text-xl">{t('search.startSearch')}</h1><p className="search-help-copy">{t('search.enterQuery')}</p></div>}
       {data && <>
         <p role="status" className="search-result-count">{t('search.bybResults', { count: data.products.length, total: data.total, query: state.q })}</p>
         {data.products.length === 0 && <div className="py-12 text-center">
-          <h2 className="text-xl font-semibold">{t('search.noResults')}</h2><p className="mt-2 text-gray-600">{t('search.tryAdjusting')}</p>
+          <h2 className="text-xl">{t('search.noResults')}</h2><p className="search-help-copy">{t('search.tryAdjusting')}</p>
           <button type="button" className="btn-secondary mt-4" onClick={() => change({ q: '' })}>{t('search.clearSearch')}</button>
         </div>}
         <div className="search-product-grid">
