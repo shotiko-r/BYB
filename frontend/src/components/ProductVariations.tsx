@@ -10,10 +10,12 @@ export function ProductVariations({ group, selections, onChange }: {
 }) {
   const id = useId();
   const { t } = useI18n();
-  return <fieldset className="product-variations">
+  const dimensions = group.dimensions.filter(dimension => dimension.values.length > 1);
+  if (!dimensions.length) return null;
+  return <fieldset className="product-variations" aria-describedby={`${id}-hint`}>
     <legend>{t('product.p22.options')}</legend>
-    {group.dimensions.filter(dimension => dimension.values.length > 1).map((dimension, index) =>
-      <div className="product-variation" key={dimension.name}>
+    <div className="product-variation-grid">
+      {dimensions.map((dimension, index) => <div className="product-variation" key={dimension.name}>
         <label htmlFor={`${id}-${index}`}>{dimension.name}</label>
         <select id={`${id}-${index}`} value={selections[dimension.name] ?? ''} onChange={event =>
           onChange({ ...selections, [dimension.name]: event.target.value })}>
@@ -22,7 +24,10 @@ export function ProductVariations({ group, selections, onChange }: {
             disabled={!variationOptionEnabled(group, selections, dimension.name, value)}>{value}</option>)}
         </select>
       </div>)}
-    <button type="button" onClick={() => onChange({})}>{t('product.p22.reset')}</button>
-    <p>{t('product.p22.hint')}</p>
+    </div>
+    <div className="product-variation-footer">
+      <button type="button" onClick={() => onChange({})}>{t('product.p22.reset')}</button>
+      <p id={`${id}-hint`}>{t('product.p22.hint')}</p>
+    </div>
   </fieldset>;
 }

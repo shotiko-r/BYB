@@ -78,11 +78,13 @@ test('out-of-stock current member has a disabled purchase action', () => {
   assert.ok(html.includes('aria-disabled="true"'));
   assert.ok(!html.includes('href="https://www.ebay.com/itm/123?var=four"'));
 });
-test('description styles bound desktop/tablet/mobile height and allow vertical keyboard scrolling', () => {
+test('short descriptions stay fully visible without a toggle or scroll trap', () => {
   const css = readFileSync(new URL('../src/app/globals.css', import.meta.url), 'utf8');
-  for (const value of ['max-height: 480px', 'max-height: 420px', 'max-height: 360px', 'overflow-y: auto', 'overflow-x: hidden', 'scrollbar-width: thin']) assert.ok(css.includes(value));
+  assert.ok(css.includes('.product-description-toggle'));
+  assert.ok(!css.includes('max-height: 480px'));
   const html = render(<ProductDescription text="Short description" />);
-  assert.ok(html.includes('tabindex="0"'));
+  assert.ok(html.includes('Short description'));
+  assert.ok(!html.includes('tabindex="0"'));
   assert.ok(!html.includes('Show more'));
 });
 

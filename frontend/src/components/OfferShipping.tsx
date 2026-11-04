@@ -15,7 +15,7 @@ export function OfferShipping({ offer }: { offer: Offer }) {
   return <div className="offer-shipping">
     <h3 className="offer-shipping-title">{t('product.p1.shippingDelivery')}</h3>
     <dl className="purchase-facts">
-      {facts.cost && <div><dt>{t('product.p1.shipping')}</dt><dd>{facts.cost.amount === 0 ? t('product.shipping.free') : formatMoney(facts.cost.amount, facts.cost.currencyCode)}</dd></div>}
+      {facts.cost && <div><dt>{t('product.p1.shipping')}</dt><dd>{facts.cost.amount === 0 ? t('product.shipping.free') : formatMoney(facts.cost.amount, facts.cost.currencyCode, locale)}</dd></div>}
       {facts.service && <div><dt>{t('product.p1.service')}</dt><dd>{facts.service}</dd></div>}
       {dates && <div><dt>{t('product.p1.delivery')}</dt><dd>{facts.minimum && facts.maximum ? dates : t(facts.maximum ? 'product.p1.by' : 'product.p1.from', { date: dates })}</dd></div>}
     </dl>

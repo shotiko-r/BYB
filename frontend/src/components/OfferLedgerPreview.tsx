@@ -5,7 +5,7 @@ import { ProductImage } from './ProductImage';
 import { merchantName } from '@/lib/merchant';
 import { formatMoney } from '@/lib/offer-prices';
 import { availabilityKey } from '@/lib/product-presentation';
-import { latestCheckedAt, ledgerRows } from '@/lib/ledger-preview';
+import { formatCheckedAt, latestCheckedAt, ledgerRows, lowestKnownTotal } from '@/lib/ledger-preview';
 import { useI18n } from '@/i18n/I18nContext';
 import type { Market, ProductWithOffers } from '@/types';
 
@@ -17,12 +17,9 @@ export function OfferLedgerPreview({ product, market, loading = false }: {
   const { t, locale } = useI18n();
   const rows = product ? ledgerRows(product) : [];
   const visibleRows = rows.slice(0, 3);
-  const comparable = rows.length > 1 && rows.every(row => row.total && row.total.currencyCode === rows[0].total?.currencyCode);
-  const lowest = comparable ? Math.min(...rows.map(row => row.total!.amount)) : undefined;
+  const lowest = lowestKnownTotal(rows);
   const latest = latestCheckedAt(rows);
-  const checked = latest
-    ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(latest))
-    : undefined;
+  const checked = formatCheckedAt(latest, locale);
 
   return <aside className="offer-ledger" aria-labelledby="ledger-title">
     <div className="ledger-heading">
@@ -61,12 +58,12 @@ export function OfferLedgerPreview({ product, market, loading = false }: {
                   <span>{merchantName(row.offer.merchant) || t('product.merchantUnavailable')}</span>
                   {availability && <small>{t(availability)}</small>}
                 </th>
-                <td>{formatMoney(row.offer.priceAmount, row.offer.currencyCode)}</td>
+                <td>{formatMoney(row.offer.priceAmount, row.offer.currencyCode, locale)}</td>
                 <td>{row.shipping
-                  ? (row.shipping.amount === 0 ? t('product.shipping.free') : formatMoney(row.shipping.amount, row.shipping.currencyCode))
+                  ? (row.shipping.amount === 0 ? t('product.shipping.free') : formatMoney(row.shipping.amount, row.shipping.currencyCode, locale))
                   : <span className="ledger-unavailable">{t('homepage.ledger.shippingMissing')}</span>}</td>
                 <td>{row.total
-                  ? <>{formatMoney(row.total.amount, row.total.currencyCode)}{row.total.amount === lowest && <small className="ledger-lowest">{t('homepage.ledger.lowest')}</small>}</>
+                  ? <>{formatMoney(row.total.amount, row.total.currencyCode, locale)}{lowest && row.total.amount === lowest.amount && row.total.currencyCode === lowest.currencyCode && <small className="ledger-lowest">{t('homepage.ledger.lowest')}</small>}</>
                   : <span className="ledger-unavailable" aria-label={t('homepage.ledger.totalUnavailable')}>—</span>}</td>
               </tr>;
             })}

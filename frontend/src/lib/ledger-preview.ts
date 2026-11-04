@@ -1,11 +1,13 @@
 import { displayOffers } from './product-presentation';
+import { compareAtPrice, type PriceAmount } from './offer-prices';
 import { shippingFacts } from './shipping-presentation';
 import type { Offer, ProductWithOffers } from '@/types';
 
 export interface LedgerRow {
   offer: Offer;
-  shipping?: { amount: number; currencyCode: string };
-  total?: { amount: number; currencyCode: string };
+  compareAt?: PriceAmount;
+  shipping?: PriceAmount;
+  total?: PriceAmount;
   checkedAt?: string;
 }
 
@@ -19,6 +21,7 @@ export function ledgerRows(product: ProductWithOffers): LedgerRow[] {
     const sameCurrency = shipping?.currencyCode === offer.currencyCode;
     return {
       offer,
+      compareAt: compareAtPrice(offer),
       shipping,
       total: shipping && sameCurrency
         ? { amount: offer.priceAmount + shipping.amount, currencyCode: offer.currencyCode }
@@ -31,6 +34,20 @@ export function ledgerRows(product: ProductWithOffers): LedgerRow[] {
 export function latestCheckedAt(rows: LedgerRow[]): string | undefined {
   return rows.map(row => row.checkedAt).filter((value): value is string => Boolean(value))
     .sort((a, b) => Date.parse(b) - Date.parse(a))[0];
+}
+
+// A lowest-total claim needs at least two complete, same-currency totals.
+// Unknown shipping stays unknown and is never treated as zero.
+export function lowestKnownTotal(rows: LedgerRow[]): PriceAmount | undefined {
+  if (rows.length < 2 || !rows.every(row => row.total)) return undefined;
+  const currencyCode = rows[0]!.total!.currencyCode;
+  if (!rows.every(row => row.total!.currencyCode === currencyCode)) return undefined;
+  return { amount: Math.min(...rows.map(row => row.total!.amount)), currencyCode };
+}
+
+export function formatCheckedAt(value: string | undefined, locale: string): string | undefined {
+  if (!value || !Number.isFinite(Date.parse(value))) return undefined;
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }
 
 // The ledger is evidence, not a new ranking: select the widest visible comparison

@@ -6,6 +6,12 @@ export function displayOffers(product: ProductWithOffers): Offer[] {
   return sortOffers(product.offers.filter(offer => offer.isActive));
 }
 
+// Variant controls only rewrite the associated eBay offer, so keep that offer primary there.
+export function primaryOffer(product: ProductWithOffers): Offer | undefined {
+  const offers = displayOffers(product);
+  return (product.variationGroup ? offers.find(offer => offer.merchant?.code === 'ebay') : undefined) ?? offers[0];
+}
+
 export function knownText(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const text = value.trim();
@@ -84,6 +90,22 @@ export function availabilityKey(offer?: Offer): string | undefined {
 
 export function offerAction(count: number): { key: string; params?: { count: number } } {
   return count > 1 ? { key: 'common.compareOffers', params: { count } } : { key: 'product.viewDetails' };
+}
+
+// Public provenance labels only. Raw feed keys, provider payloads and IDs stay internal.
+export function offerSourceKey(offer: Offer): string {
+  if (offer.merchant?.code === 'ebay') return 'product.source.ebay';
+  if (offer.merchant?.code === 'aliexpress') {
+    const metadata = offer.affiliateMetadata;
+    const source = metadata && typeof metadata === 'object' && !Array.isArray(metadata)
+      ? metadata._byb : undefined;
+    const sourceType = source && typeof source === 'object' && !Array.isArray(source)
+      ? (source as Record<string, unknown>).sourceType : undefined;
+    if (sourceType === 'fmtc-feed') return 'product.source.fmtc';
+    if (sourceType === 'admitad-feed') return 'product.source.admitad';
+    return 'product.source.aliexpress';
+  }
+  return 'product.source.merchant';
 }
 
 // NEXT_PUBLIC values are inlined by Next at build time. Other AliExpress sources fail closed by default.

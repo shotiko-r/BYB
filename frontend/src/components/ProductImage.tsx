@@ -20,6 +20,6 @@ export function ProductImage({ src, alt, sizes, priority = false }: {
     </div>
   );
   return <Image src={src} alt={alt} fill sizes={sizes} priority={priority}
-    unoptimized={src.startsWith('http')} className="object-contain transition-transform duration-300 group-hover:scale-105"
+    unoptimized={src.startsWith('http')} className="object-contain"
     onError={() => setFailedSrc(src)} />;
 }

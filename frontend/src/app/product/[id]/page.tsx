@@ -41,7 +41,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
         setProduct(data);
         setError(null);
       } catch (err) {
-        setError(t('product.productNotFound'));
+        setError(t('common.productNotFound'));
         console.error(err);
       } finally {
         setLoading(false);
@@ -58,7 +58,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
         const data = await api.products.get(id, market.code);
         setProduct(data);
       } catch (err) {
-        setError(t('product.failedToLoad'));
+        setError(t('common.failedToLoad'));
       } finally {
         setLoading(false);
       }
@@ -89,7 +89,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
             <svg className="product-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <h1 className="text-2xl mb-2">{t('product.productNotFound')}</h1>
+            <h1 className="text-2xl mb-2">{t('common.productNotFound')}</h1>
             <p className="product-state-copy mb-6">{error}</p>
             <a href={`/search?market=${selectedMarket.code}`} className="btn-primary">
               {t('common.backToSearch')}

@@ -22,7 +22,8 @@ const render = (view: React.ReactNode) => renderToStaticMarkup(<I18nProvider>{vi
 
 test('single offer has one purchase CTA and no redundant comparison; useful facts only', () => {
   const item = product(); const html = render(<ProductDetailContent product={item} market={market} />);
-  assert.equal((html.match(/Buy on eBay/g) || []).length, 1);
+  assert.equal((html.match(/class="merchant-link purchase-cta"/g) || []).length, 1);
+  assert.equal((html.match(/class="merchant-link product-mobile-link"/g) || []).length, 1);
   for (const value of ['Sony','WH-1000XM5','Open box','Black','Aluminium','$53.00','About this product']) assert.ok(html.includes(value), value);
   for (const value of ['id="product-offers"','<table','private-id','Unknown','Estimated delivery','Best Price']) assert.ok(!html.includes(value), value);
 });

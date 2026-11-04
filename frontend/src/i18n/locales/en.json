@@ -409,7 +409,8 @@
       "showMore": "Show more",
       "showLess": "Show less",
       "specifications": "Specifications",
-      "shippingDelivery": "Shipping & delivery"
+      "shippingDelivery": "Shipping & delivery",
+      "disclosureLink": "How BYB is funded"
     },
     "comparePrices": "Compare Prices",
     "merchantOffers": "{{count}} merchant offers available",
@@ -450,6 +451,50 @@
     },
     "shipping": {
       "free": "Free shipping"
+    },
+    "source": {
+      "ebay": "eBay listing",
+      "aliexpress": "AliExpress listing",
+      "fmtc": "AliExpress via FMTC feed",
+      "admitad": "AliExpress feed",
+      "merchant": "Merchant feed"
+    },
+    "ledger": {
+      "eyebrow": "PRODUCT LEDGER",
+      "title": "Every listed offer for this product.",
+      "subtitle": "Listed offers: {{count}}. Item prices stay in source currency; totals appear only when shipping is known in that currency.",
+      "source": "Source",
+      "sourceValue": "Source: {{source}}",
+      "merchant": "Merchant",
+      "item": "Item price",
+      "shipping": "Shipping",
+      "deliveryValue": "Estimated delivery: {{date}}",
+      "total": "Total",
+      "checked": "Last checked",
+      "notProvided": "Not provided",
+      "shippingMissing": "Not provided",
+      "totalUnavailable": "Not calculated",
+      "saving": "Save {{amount}} ({{percent}}%)",
+      "savingAmount": "Save {{amount}}",
+      "wasPrice": "Was {{price}}",
+      "viewOffer": "View offer",
+      "lowest": "Lowest known total",
+      "note": "Shipping is shown only when the merchant provides a known cost in the same currency. Missing or unconfirmed shipping is not treated as zero. Customs, duties and other import costs are not calculated.",
+      "disclosure": "BYB may earn a commission from qualifying purchases. Commission does not change how offers are ordered.",
+      "emptySummary": "No price can be shown for this product until an eligible offer is available."
+    },
+    "trust": {
+      "eyebrow": "WHAT THIS PAGE SHOWS",
+      "title": "Offer evidence, not storefront pressure.",
+      "description": "This page compares listed offer data from merchant and affiliate feeds. It does not sell products or complete checkout.",
+      "items": {
+        "price": "Item price and merchant name come from the listed feed data.",
+        "shipping": "Shipping and delivery appear only where the merchant provides them.",
+        "commission": "BYB may earn a commission from qualifying purchases.",
+        "ranking": "Merchants cannot pay to change offer order or placement.",
+        "freshness": "The latest provided offer check is shown; BYB does not claim continuous refresh."
+      },
+      "note": "Source labels identify feed provenance only and do not imply a partnership, endorsement or sponsorship. Customs, duties and full landed cost are not calculated. Confirm final price, shipping and returns with the merchant."
     }
   },
   "footer": {

@@ -113,11 +113,11 @@ test('two eligible offers use comparison text; inactive offers do not inflate co
   product.offers.push({ ...product.offers[0], id: 'second', externalProductId: 'second', priceAmount: 100 });
   assert.ok(render(product).includes('Compare 2 offers'));
   assert.ok(renderView(discovery(product)).includes('Compare 2 offers'));
-  assert.ok(render(product, true).includes('Compare Prices'));
+  assert.ok(render(product, true).includes('id="product-offers"'));
   assert.ok(!render(product).includes('stores'));
   product.offers[1].isActive = false;
   assert.ok(!render(product).includes('Compare 2 offers'));
-  assert.ok(!render(product, true).includes('Compare Prices'));
+  assert.ok(!render(product, true).includes('id="product-offers"'));
 });
 
 test('known condition is visible without internal IDs or provider objects', () => {
