@@ -44,6 +44,26 @@ const requests = [];
   }
   let failOnce = true;
   const stamp = '2026-10-21T12:00:00.000Z';
+  const productId = '00000000-0000-4000-8000-000000000001';
+  const offer = (id, merchant, priceAmount, shippingInfo = {}) => ({
+    id, productId, merchantId: id, marketId: '00000000-0000-4000-8000-000000000010', externalProductId: id,
+    merchant: { id, code: merchant, name: merchant === 'ebay' ? 'eBay' : 'AliExpress', logoUrl: null },
+    priceAmount, currencyCode: 'USD', availability: 'in_stock', shippingInfo, affiliateMetadata: {},
+    destinationUrl: 'https://merchant.example.test/item', lastCheckedAt: stamp, createdAt: stamp, updatedAt: stamp, isActive: true,
+  });
+  const product = {
+    id: productId, slug: 'synthetic-ledger-product', name: 'Synthetic travel headphones', description: null, brand: 'BYB Test', model: null,
+    categoryId: null, imageUrl: null, attributes: {}, isActive: true, createdAt: stamp, updatedAt: stamp,
+    offers: [offer('00000000-0000-4000-8000-000000000002', 'ebay', 12999), offer('00000000-0000-4000-8000-000000000003', 'aliexpress', 12499)],
+  };
+  const detailProduct = {
+    ...product,
+    offers: [
+      offer('00000000-0000-4000-8000-000000000002', 'ebay', 12999, { options: [{ type: 'shipping', shippingCost: { amount: 499, currencyCode: 'USD' }, shippingServiceCode: 'USPS Ground', minEstimatedDeliveryDate: '2027-01-04T00:00:00.000Z', maxEstimatedDeliveryDate: '2027-01-08T00:00:00.000Z', shipToLocationUsedForEstimate: { country: 'GE' } }] }),
+      offer('00000000-0000-4000-8000-000000000003', 'aliexpress', 12499),
+    ],
+  };
+  const discoveryProduct = { ...product, offerCount: 2, distinctMerchantCount: 2, firstSeenAt: stamp };
   ws.onmessage = async event => {
     const message = JSON.parse(event.data);
     if (message.id) {
@@ -61,6 +81,15 @@ const requests = [];
         merchants: [{ code: 'ebay', name: 'eBay' }, { code: 'aliexpress', name: 'AliExpress' }],
         categories: [{ id: '00000000-0000-4000-8000-000000000003', slug: 'headphones', name: 'Headphones', parentId: null }], currencies: ['USD', 'GEL'],
       };
+      else if (url.pathname === '/api/discovery/home') body = {
+        market: (url.searchParams.get('market') || 'GE').toUpperCase(), generatedAt: stamp, rotationBucket: '2026-10-21', algorithmVersion: 'discovery-v1',
+        sections: [
+          { key: 'discover', titleKey: 'homepage.sections.discover', status: 'ok', products: [discoveryProduct] },
+          { key: 'new_on_byb', titleKey: 'homepage.sections.newOnByb', status: 'ok', products: [discoveryProduct] },
+          { key: 'more_to_explore', titleKey: 'homepage.sections.more', status: 'ok', products: [discoveryProduct] },
+        ],
+      };
+      else if (url.pathname === `/api/products/${productId}`) body = detailProduct;
       else if (url.pathname === '/api/search/suggestions') {
         const q = url.searchParams.get('q');
         if (q === 'So') await delay(350);
@@ -102,8 +131,13 @@ const requests = [];
   const select = (label, value) => evaluate(`(()=>{const label=[...document.querySelectorAll('label')].find(label=>label.textContent.trim().startsWith(${JSON.stringify(label)})); const select=label.querySelector('select'); select.value=${JSON.stringify(value)}; select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
   const check = async (condition, message) => assert.equal(await evaluate(condition), true, message);
 
-  const screenshot = async name => {
-    const shot = await call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+  const screenshot = async (name, fullPage = false) => {
+    const params = { format: 'png', captureBeyondViewport: fullPage };
+    if (fullPage) {
+      const metrics = await call('Page.getLayoutMetrics');
+      params.clip = { x: 0, y: 0, width: metrics.cssContentSize.width, height: metrics.cssContentSize.height, scale: 1 };
+    }
+    const shot = await call('Page.captureScreenshot', params);
     writeFileSync(join(tmpdir(), `byb-nav1-${name}.png`), Buffer.from(shot.data, 'base64'));
   };
   const overflow = () => check('document.documentElement.scrollWidth <= innerWidth', 'no horizontal overflow');
@@ -112,7 +146,7 @@ const requests = [];
     await call('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...rect });
     await call('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...rect });
   };
-  for (const width of [390, 768, 1440]) {
+  for (const width of [320, 375, 390, 768, 1440]) {
     await call('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: false });
     for (const theme of ['dark', 'light']) {
       await call('Page.navigate', { url: `${origin}/about?market=AM` }); await waitText('Better purchase decisions');
@@ -149,10 +183,19 @@ const requests = [];
         await until(() => evaluate(`location.pathname==='/${route}' && Boolean(document.querySelector('.information-page h1'))`), route);
         await overflow(); await screenshot(`${width}-${theme}-${route}`);
       }
-      await call('Page.navigate', { url: `${origin}/?market=AZ` }); await waitText('Find your next good find.');
+      await call('Page.navigate', { url: `${origin}/?market=AZ` }); await waitText('Compare the real offer, not the pitch.');
       await until(() => evaluate(`document.querySelector('.header-utilities select').value==='3'`), 'homepage market preservation');
+      await waitText('One product. Every listed offer.');
+      await until(() => evaluate(`document.querySelector('.ledger-table')?.innerText.includes('$134.98')`), 'ledger detail total');
+      await check(`document.querySelectorAll('.category-tile').length===6`, 'six editorial categories');
+      await check(`document.querySelectorAll('.home-discovery .discovery-section').length===3`, 'three homepage shelves');
+      await check(`document.querySelector('.offer-ledger').innerText.includes('$4.99')`, 'merchant shipping shown');
+      await check(`document.querySelector('.offer-ledger').innerText.includes('Not provided')`, 'missing shipping stays honest');
+      await check(`document.querySelector('.offer-ledger').innerText.includes('Customs, duties and other import costs are not calculated.')`, 'landed-cost limitation visible');
+      await check(`!document.body.innerText.includes('Ask BYB') && !document.body.innerText.includes('browsing memory')`, 'legacy assistant and memory removed');
       await check(`document.querySelector('.home-categories').compareDocumentPosition(document.querySelector('#discovery')) & Node.DOCUMENT_POSITION_FOLLOWING ? true : false`, 'homepage category first');
       await overflow(); await screenshot(`${width}-${theme}-home`);
+      if (width === 1440 || width === 390) await screenshot(`${width}-${theme}-home-full`, true);
     }
   }
   await call('Page.navigate', { url: `${origin}/about` }); await waitText('Better purchase decisions');
@@ -160,7 +203,11 @@ const requests = [];
   await check(`document.querySelector('input[name=market]').value==='AM'`, 'market selector works');
   await select('Theme', 'dark'); await check(`document.documentElement.dataset.theme==='dark'`, 'theme selector works');
   await select('Select language', 'ka'); await until(() => evaluate(`document.documentElement.lang==='ka'`), 'language selector works');
-  console.log(JSON.stringify({ passed: true, widths: [390,768,1440], themes: ['dark','light'], checks: ['Discover toggles','mega menu','Enter/ArrowDown/Escape','focus return','outside click','mobile nested categories','market preservation','search submission','preferences','public pages','category-first home','no overflow'], screenshots: '/tmp/byb-nav1-*.png' }));
+  await call('Page.navigate', { url: `${origin}/?market=GE` });
+  await waitText('შეადარე რეალური შეთავაზება და არა რეკლამა.');
+  await check(`document.querySelector('.home-steps').innerText.includes('შეადარეთ')`, 'Georgian homepage steps');
+  await overflow();
+  console.log(JSON.stringify({ passed: true, widths: [320,375,390,768,1440], themes: ['dark','light'], checks: ['Discover toggles','mega menu','Enter/ArrowDown/Escape','focus return','outside click','mobile nested categories','market preservation','search submission','preferences','public pages','category-first home','six categories','three shelves','offer ledger','no overflow'], screenshots: '/tmp/byb-nav1-*.png' }));
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => {
   ws?.close(); children.reverse().forEach(child => child.kill('SIGTERM'));
 });

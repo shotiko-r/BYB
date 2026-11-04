@@ -27,6 +27,11 @@ test('all header and footer destinations resolve to implemented routes and valid
   for (const match of html.matchAll(/href="([^"]+)"/g)) {
     const url = new URL(match[1].replaceAll('&amp;', '&'), 'https://byb.example');
     assert.ok(existsSync(`src/app${url.pathname === '/' ? '' : url.pathname}/page.tsx`), url.pathname);
+    const isMarketSwitch = url.pathname === '/' && [...url.searchParams.keys()].length === 1 && url.searchParams.get('market') !== 'GE';
+    if (isMarketSwitch) {
+      assert.ok(['AM', 'AZ'].includes(url.searchParams.get('market')!));
+      continue;
+    }
     assert.equal(url.searchParams.get('market'), 'GE');
     if (url.hash) assert.ok(['#explore', '#discovery'].includes(url.hash));
     assert.ok(!['/deals', '/account', '/cart', '/favorites', '/trending'].includes(url.pathname));

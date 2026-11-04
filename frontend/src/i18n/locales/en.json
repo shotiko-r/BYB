@@ -23,7 +23,7 @@
     "priceLabel": "Available price · {{currency}}",
     "invalid": "Please complete the requested answers and enter a valid budget and currency.",
     "custom": "Your answer"
-},
+  },
   "common": {
     "search": "Search",
     "discover": "Discover",
@@ -75,11 +75,11 @@
   "homepage": {
     "h1": {
       "eyebrow": "BEFORE YOU BUY",
-      "title": "Find your next good find.",
-      "description": "Start with what you love. Explore listings from different merchants, all in one place.",
+      "title": "Compare the real offer, not the pitch.",
+      "description": "BYB lays out item price, shipping and merchant source side by side. No storefront pressure, no paid placement — just the evidence you need before you buy.",
       "search": "Search BYB",
-      "categories": "Where will you explore?",
-      "categoryHint": "Choose a category to start exploring.",
+      "categories": "Start with a category",
+      "categoryHint": "Six routes into the catalog, chosen for practical buying decisions.",
       "assistant": "Need a hand choosing? Ask BYB",
       "memory": "Category and product visits are remembered only on this device for up to 30 days. They do not change these shelves.",
       "clearMemory": "Clear browsing memory",
@@ -104,8 +104,8 @@
       "title": "BEFORE YOU BUY",
       "subtitle": "Find the right thing, not just a product.",
       "description": "Don't search stores. Tell BYB what you need.",
-      "placeholder": "I need headphones for travel under $200...",
-      "cta": "Ask BYB",
+      "placeholder": "What are you looking for?",
+      "cta": "Search the catalog",
       "examples": {
         "label": "Try:",
         "items": [
@@ -120,23 +120,26 @@
         "photo": "Photo",
         "voice": "Voice",
         "link": "Paste link"
-      }
+      },
+      "popularLabel": "Try a search",
+      "trust": "BYB does not set or change merchant prices, and merchants cannot pay to improve their ranking. Shipping is shown only where the merchant provides it; confirm final costs with the merchant.",
+      "affiliate": "BYB may earn a commission from qualifying purchases."
     },
     "discovery": {
       "unavailable": "This section is temporarily unavailable. Please try again.",
-      "discover": "Explore listings from the available catalog.",
-      "newOnByb": "Listings ordered by when first seen on BYB in this market.",
+      "discover": "A considered cross-section of the available catalog.",
+      "newOnByb": "The latest listings first seen on BYB in this market.",
       "under25": "Item prices in USD. Shipping and taxes may be extra.",
       "under50": "Item prices in USD. Shipping and taxes may be extra.",
-      "more": "More listings from across the available catalog.",
+      "more": "Further listings from the available catalog.",
       "empty": "No matching listings available."
     },
     "sections": {
-      "discover": "Discover",
+      "discover": "Catalog picks",
       "newOnByb": "New on BYB",
       "under25": "Under US$25",
       "under50": "Under US$50",
-      "more": "More to Explore",
+      "more": "More to explore",
       "explore": "Explore BYB",
       "trending": "Trending across BYB",
       "popular": "Popular",
@@ -199,7 +202,11 @@
     },
     "popular": {
       "title": "Popular",
-      "empty": "No popular products found."
+      "empty": "No popular products found.",
+      "headphones": "Headphones",
+      "coffee": "Coffee maker",
+      "carParts": "Car parts",
+      "camping": "Camping"
     },
     "deals": {
       "title": "Best Deals",
@@ -219,10 +226,98 @@
       "localAvailability": "Local availability",
       "currency": "Currency",
       "customs": "Customs information"
+    },
+    "commitments": {
+      "eyebrow": "OUR COMMITMENTS",
+      "title": "Three things BYB will not do.",
+      "sell": {
+        "title": "We don't sell products.",
+        "description": "BYB is not a store. Purchases finish on the merchant's website, under the merchant's terms."
+      },
+      "ranking": {
+        "title": "We don't sell ranking.",
+        "description": "Merchants cannot pay to appear higher in search or shelves. Ranking follows catalog and comparison logic."
+      },
+      "merchant": {
+        "title": "We don't hide the merchant.",
+        "description": "Every offer names its source, and missing information stays visibly missing."
+      }
+    },
+    "categories": {
+      "eyebrow": "CATALOG ROUTES",
+      "all": "Browse all listings"
+    },
+    "ledger": {
+      "eyebrow": "OFFER LEDGER",
+      "title": "One product. Every listed offer.",
+      "subtitle": "A live view from the available catalog, using merchant-provided prices and shipping where present.",
+      "caption": "Offer ledger for {{product}}",
+      "merchant": "Merchant",
+      "item": "Item",
+      "shipping": "Shipping",
+      "total": "Total",
+      "offerCountOne": "1 listed offer",
+      "offerCount": "{{count}} listed offers",
+      "shippingMissing": "Not provided",
+      "totalUnavailable": "Total not calculated",
+      "moreOffers": "+{{count}} more listed offers",
+      "checked": "Most recent offer check",
+      "checkUnavailable": "Freshness timestamp not provided",
+      "note": "Item prices are shown in their source currencies. Shipping is merchant-provided where available. Customs, duties and other import costs are not calculated.",
+      "details": "View full product and offers",
+      "emptyTitle": "Offer ledger is unavailable",
+      "emptyDescription": "We couldn't load a product with listed offers right now. Search the catalog to keep comparing.",
+      "lowest": "Lowest known total"
+    },
+    "sources": {
+      "eyebrow": "SOURCE TRANSPARENCY",
+      "title": "Know where the offers come from.",
+      "description": "BYB's catalog is assembled from merchant and affiliate product feeds. Live merchant names appear on each offer; these are the source programs currently represented.",
+      "ebay": "Listings supplied through eBay's product feed, subject to eBay availability.",
+      "aliexpress": "Listings supplied through AliExpress, with prices in the merchant's source currency.",
+      "fmtc": "Affiliate merchant data supplied through FMTC. Individual merchants are named on each offer.",
+      "note": "Source marks identify feed provenance only. BYB does not imply a partnership, endorsement or sponsorship by these platforms; availability and terms remain with the merchant.",
+      "method": "How sourcing works"
+    },
+    "trust": {
+      "eyebrow": "THE DECISION LAYER",
+      "title": "A quieter way to compare before you buy.",
+      "description": "No countdown timers, no invented savings, no pressure to decide. BYB gives you the offer facts and a clear route to the merchant so you can make your own call.",
+      "how": "How BYB works",
+      "affiliate": "How BYB is funded",
+      "listTitle": "What this comparison includes",
+      "items": {
+        "item": "Item price, shown in the merchant's source currency",
+        "shipping": "Shipping when the merchant provides it",
+        "delivery": "Delivery estimate and destination only when supplied",
+        "source": "Merchant name and source for every listed offer",
+        "checked": "The last time the offer data was checked"
+      },
+      "note": "Customs, duties and full landed cost are not calculated. BYB does not change merchant prices or rank offers for payment. Confirm final price, shipping and returns with the merchant before purchase."
+    },
+    "steps": {
+      "title": "How it works",
+      "search": {
+        "title": "Search",
+        "description": "Find a product on BYB."
+      },
+      "compare": {
+        "title": "Compare",
+        "description": "Review available offers and shipping."
+      },
+      "buy": {
+        "title": "Buy from the merchant",
+        "description": "Complete your purchase on the merchant’s website."
+      }
     }
   },
   "header": {
-    "theme": {"label": "Theme", "system": "System", "light": "Light", "dark": "Dark"},
+    "theme": {
+      "label": "Theme",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
     "nav": {
       "discover": "Discover",
       "deals": "Deals",
@@ -277,56 +372,6 @@
     "previous": "Previous",
     "next": "Next",
     "pageOf": "Page {{page}} of {{totalPages}}"
-  },
-  "product": {
-    "comparePrices": "Compare Prices",
-    "merchantOffers": "{{count}} merchant offers available",
-    "bestPrice": "Best Price",
-    "description": "Description",
-    "specifications": "Specifications",
-    "allOffers": "All Offers ({{count}})",
-    "bestOffer": "Best Offer",
-    "viewDetails": "View details",
-    "linkUnavailable": "Merchant link temporarily unavailable",
-    "offerDetails": "Offer details",
-    "listedOffers": "Listed offers",
-    "noOffers": "No eligible offers available.",
-    "merchantUnavailable": "Merchant unavailable",
-    "visitMerchant": "Visit merchant",
-    "buyOn": "Buy on {{merchant}}",
-    "availability": {
-      "in_stock": "In Stock",
-      "limited": "Limited Stock",
-      "pre_order": "Pre-order",
-      "out_of_stock": "Out of Stock",
-      "unknown": "Unknown"
-    },
-    "specificationsTitle": "Specifications",
-    "descriptionTitle": "Description",
-    "allOffers": "All Offers ({{count}})",
-    "viewAllOffers": "View all {{count}} offers"
-  },
-  "footer": {
-    "tagline": "Before You Buy — Compare prices across merchants before you purchase.",
-    "product": "Product",
-    "company": "Company",
-    "legal": "Legal",
-    "links": {
-      "search": "Search",
-      "trending": "Trending",
-      "deals": "Best Deals",
-      "categories": "Categories",
-      "newReleases": "New Releases",
-      "about": "About",
-      "blog": "Blog",
-      "careers": "Careers",
-      "press": "Press",
-      "privacy": "Privacy",
-      "terms": "Terms",
-      "cookies": "Cookies",
-      "affiliate": "Affiliate Disclosure"
-    },
-    "copyright": "© {{year}} BYB. All rights reserved. Not an online store — we help you compare before you buy."
   },
   "product": {
     "p22": {
@@ -390,7 +435,6 @@
     },
     "specificationsTitle": "Specifications",
     "descriptionTitle": "Description",
-    "allOffers": "All Offers ({{count}})",
     "viewAllOffers": "View all {{count}} offers",
     "breadcrumb": {
       "home": "Home",
@@ -407,6 +451,29 @@
     "shipping": {
       "free": "Free shipping"
     }
+  },
+  "footer": {
+    "tagline": "Before You Buy — Compare prices across merchants before you purchase.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "links": {
+      "search": "Search",
+      "trending": "Trending",
+      "deals": "Best Deals",
+      "categories": "Categories",
+      "newReleases": "New Releases",
+      "about": "About",
+      "blog": "Blog",
+      "careers": "Careers",
+      "press": "Press",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "cookies": "Cookies",
+      "affiliate": "Affiliate Disclosure"
+    },
+    "copyright": "© {{year}} BYB. All rights reserved. Not an online store — we help you compare before you buy.",
+    "markets": "Markets"
   },
   "explore": {
     "tech": {

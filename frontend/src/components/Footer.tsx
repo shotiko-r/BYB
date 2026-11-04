@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Logo } from './Logo';
 import { useI18n } from '@/i18n/I18nContext';
+import { navigationMarkets } from '@/lib/navigation-markets';
 
 export function Footer({ market = 'GE' }: { market?: string }) {
   const { t } = useI18n();
@@ -13,6 +14,8 @@ export function Footer({ market = 'GE' }: { market?: string }) {
       <nav aria-label="Explore BYB"><h3>Explore BYB</h3><Link href={destination('/search')}>{t('footer.links.search')}</Link><Link href={`${destination('/')}#explore`}>{t('footer.links.categories')}</Link><Link href={destination('/how-it-works')}>How it works</Link></nav>
       <nav aria-label="About BYB"><h3>About BYB</h3><Link href={destination('/about')}>About</Link><Link href={destination('/partners')}>Partner with BYB</Link><Link href={destination('/contact')}>Contact</Link></nav>
       <nav aria-label="Transparency"><h3>Transparency</h3><Link href={destination('/affiliate-disclosure')}>Affiliate disclosure</Link></nav>
+      <nav aria-label={t('footer.markets')}><h3>{t('footer.markets')}</h3>{navigationMarkets.map(item =>
+        <Link key={item.code} href={`/?market=${item.code}`}>{item.name} · {item.currencyCode}</Link>)}</nav>
     </div>
     <div className="footer-legal mt-10 pt-6"><p>{t('footer.copyright', { year: new Date().getFullYear() })}</p></div>
   </div></footer>;

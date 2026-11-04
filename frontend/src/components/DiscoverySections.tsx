@@ -19,7 +19,8 @@ interface DiscoverySectionsProps {
   onRetry?: () => void;
 }
 
-// Keep the homepage layout while sharing card semantics with search and details.
+// Cards reuse the Phase 1 commerce surface but stop at evidence: the merchant
+// clickout stays on the product detail page, not the homepage shelf.
 function DecisionCard({ product, onProductClick }: {
   product: ProductWithOffers;
   market: Market;
@@ -36,25 +37,21 @@ function DecisionCard({ product, onProductClick }: {
   return (
     <button type="button" className="decision-card" onClick={() => onProductClick(product)}>
       <span className="decision-image">
-        <ProductImage src={product.imageUrl} alt={product.name} sizes="(max-width: 600px) 120px, 240px" />
+        <ProductImage src={product.imageUrl} alt={product.name} sizes="(max-width: 600px) 45vw, (max-width: 1050px) 30vw, 24vw" />
       </span>
       <span className="decision-info">
         {brand && <span className="decision-brand">{brand}</span>}
         <span className="decision-name">{product.name}</span>
-        {offer && (
-          <span className="decision-price">
-            {formatMoney(offer.priceAmount, offer.currencyCode)}
-          </span>
-        )}
-        <span className="decision-merchant merchant-badge">
+        {offer && <span className="decision-price">{formatMoney(offer.priceAmount, offer.currencyCode)}</span>}
+        <span className="decision-merchant">
           {merchantName(offer?.merchant) || t('product.merchantUnavailable')}
           {availability && <> · {t(availability)}</>}
         </span>
-        {condition && <span className="decision-merchant">{condition}</span>}
-        {offer && !clickoutEnabled(offer) && <span className="decision-merchant">{t('product.linkUnavailable')}</span>}
+        {condition && <span className="decision-condition">{condition}</span>}
+        {offer && !clickoutEnabled(offer) && <span className="decision-condition">{t('product.linkUnavailable')}</span>}
         <span className="decision-offers">
           {t(action.key, action.params)}
-          <span aria-hidden="true">↗</span>
+          <span aria-hidden="true">→</span>
         </span>
       </span>
     </button>
@@ -65,7 +62,7 @@ export function DiscoverySections(props: DiscoverySectionsProps) {
   const { t } = useI18n();
 
   return (
-    <div className="discovery discovery-v2" id="discovery">
+    <div className="discovery discovery-v2 home-discovery" id="discovery">
       {homepageSections.map((section, index) => {
         const { key } = section;
         const products = props.productsBySection[key] ?? [];
@@ -98,14 +95,9 @@ export function DiscoverySections(props: DiscoverySectionsProps) {
                   {props.onRetry && <button type="button" className="btn-secondary mt-3" onClick={props.onRetry}>{t('common.retry')}</button>}
                 </div>
               ) : products.length ? (
-                <DiscoveryShelf key={`${key}-${props.market.code}`} label={t(section.titleKey)} autoRotate={index === 0}>
+                <DiscoveryShelf key={`${key}-${props.market.code}`} label={t(section.titleKey)}>
                   {products.map(product => (
-                    <DecisionCard
-                      key={product.id}
-                      product={product}
-                      market={props.market}
-                      onProductClick={props.onProductClick}
-                    />
+                    <DecisionCard key={product.id} product={product} market={props.market} onProductClick={props.onProductClick} />
                   ))}
                 </DiscoveryShelf>
               ) : <p className="discovery-empty">{t('homepage.discovery.empty')}</p>}

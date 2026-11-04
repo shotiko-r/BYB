@@ -26,3 +26,33 @@ export function categorySearchHref(id: string, market: string): string {
   const category = homepageCategories.find(category => category.id === id);
   return `/search?${new URLSearchParams({ ...(category ? { q: category.query } : {}), market })}`;
 }
+// Six established entries, not a new taxonomy. The remaining two stay in navigation.
+export const featuredCategoryIds = ['electronics', 'home', 'fashion', 'outdoors', 'tools', 'beauty'] as const;
+export const featuredCategories = homepageCategories.filter(category =>
+  (featuredCategoryIds as readonly string[]).includes(category.id));
+// Static, catalog-backed suggestions. They are search queries, not product claims.
+export const popularSearches = [
+  { id: 'headphones', query: 'headphones' },
+  { id: 'coffee', query: 'coffee maker' },
+  { id: 'carParts', query: 'car parts' },
+  { id: 'camping', query: 'camping' },
+] as const;
+const categoryImageTerms: Record<string, readonly string[]> = {
+  electronics: ['headphone', 'earbud', 'speaker', 'camera', 'phone', 'laptop', 'console', 'gaming'],
+  home: ['kitchen', 'coffee', 'home', 'furniture', 'vacuum', 'blender', 'cookware'],
+  fashion: ['shoe', 'sneaker', 'clothing', 'jacket', 'bag', 'dress', 'shirt'],
+  outdoors: ['camp', 'hiking', 'outdoor', 'bike', 'tent', 'fitness', 'trail'],
+  tools: ['tool', 'drill', 'wrench', 'saw', 'workshop'],
+  beauty: ['beauty', 'skin', 'hair', 'makeup', 'shave', 'grooming'],
+};
+// Real product imagery for the editorial category surface. The match only chooses
+// a visible catalog image; it does not add category membership or ranking.
+export function categoryPreviewImage(
+  categoryId: string,
+  products: readonly { name: string; imageUrl: string | null }[],
+): string | undefined {
+  const terms = categoryImageTerms[categoryId] ?? [];
+  const match = products.find(product => product.imageUrl?.trim()
+    && terms.some(term => product.name.toLowerCase().includes(term)));
+  return match?.imageUrl ?? undefined;
+}

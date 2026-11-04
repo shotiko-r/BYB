@@ -218,10 +218,12 @@ test('mixed source currencies never claim a best price or best offer', () => {
 test('homepage shelves and navigation use truthful labels and implemented destinations', () => {
   const html = renderView(<><Header markets={[market]} selectedMarket={market} onMarketChange={() => {}} />
     <ExploreSection /><DiscoverySections productsBySection={{}} market={market} onProductClick={() => {}} /><Footer /></>);
-  for (const label of ['Discover', 'New on BYB', 'Under US$25', 'Under US$50', 'More to Explore']) assert.ok(html.includes(label));
+  for (const label of ['Catalog picks', 'New on BYB', 'More to explore']) assert.ok(html.includes(label));
+  const shelfHtml = renderView(<DiscoverySections productsBySection={{}} market={market} onProductClick={() => {}} />);
+  for (const label of ['Under US$25', 'Under US$50']) assert.ok(!shelfHtml.includes(label));
   for (const label of ['Trending', 'Popular', 'Best Deals', 'New Releases', 'Hard to Find', 'Price Drops']) assert.ok(!html.includes(label));
   for (const route of ['/deals', '/new', '/rare', '/trending', '/categories']) assert.ok(!html.includes(`href="${route}`), route);
-  assert.deepEqual(homepageSections.map(section => section.key), ['discover', 'new_on_byb', 'under_25_usd', 'under_50_usd', 'more_to_explore']);
+  assert.deepEqual(homepageSections.map(section => section.key), ['discover', 'new_on_byb', 'more_to_explore']);
   const headings = [...html.matchAll(/<h2[^>]*id="discovery-([^"]+)"/g)].map(match => match[1]);
   assert.deepEqual(headings, homepageSections.map(section => section.key));
   assert.ok(!html.includes('View all →'));
@@ -266,20 +268,22 @@ test('homepage calls combined discovery instead of keyword searches; client send
 
 test('homepage initial state renders section skeletons', () => {
   const html = renderView(<HomePage />);
-  assert.equal((html.match(/role="status" aria-label=/g) || []).length, 5);
+  assert.equal((html.match(/role="status" aria-label=/g) || []).length, 3);
   assert.ok(html.includes('animate-pulse'));
   assert.ok(!html.includes('No matching listings available.'));
+  assert.ok(!html.includes('Ask BYB')); assert.ok(!html.includes('Clear browsing memory'));
+  assert.ok(!html.includes('Shopping from'));
 });
 
 test('section errors are recoverable while successful sibling cards remain visible', () => {
   const html = renderView(<DiscoverySections productsBySection={{ discover: [fixture('ebay')] }} market={market} onProductClick={() => {}}
-    unavailableSections={['under_25_usd']} onRetry={() => {}} />);
+    unavailableSections={['new_on_byb']} onRetry={() => {}} />);
   assert.ok(html.includes('eBay')); assert.ok(html.includes('View details'));
   assert.equal((html.match(/role="alert"/g) || []).length, 1);
   assert.ok(html.includes('This section is temporarily unavailable. Please try again.'));
   assert.ok(html.includes('Retry'));
   const failed = renderView(<DiscoverySections productsBySection={{}} market={market} onProductClick={() => {}} failed onRetry={() => {}} />);
-  assert.equal((failed.match(/role="alert"/g) || []).length, 5);
+  assert.equal((failed.match(/role="alert"/g) || []).length, 3);
   assert.ok(!failed.includes('No matching listings available.'));
 });
 

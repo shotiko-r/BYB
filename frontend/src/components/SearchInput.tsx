@@ -6,6 +6,11 @@ import { LatestRequest, suggestionIndex } from '@/lib/latest-request';
 import { useI18n } from '@/i18n/I18nContext';
 import type { Market } from '@/types';
 
+export interface SearchExample {
+  label: string;
+  query: string;
+}
+
 interface SearchInputProps {
   market: Market;
   onSearch: (query: string) => void;
@@ -16,9 +21,11 @@ interface SearchInputProps {
   initialQuery?: string;
   onQueryChange?: (query: string) => void;
   busy?: boolean;
+  examples?: Array<string | SearchExample>;
+  examplesLabel?: string;
 }
 
-export function SearchInput({ market, onSearch, placeholder, showModes = true, homepage = false, queryValue, initialQuery = '', onQueryChange, busy = false }: SearchInputProps) {
+export function SearchInput({ market, onSearch, placeholder, showModes = true, homepage = false, queryValue, initialQuery = '', onQueryChange, busy = false, examples: exampleItems, examplesLabel }: SearchInputProps) {
   const { t, tArray } = useI18n();
   const [localQuery, setLocalQuery] = useState(initialQuery);
   const query = queryValue ?? localQuery;
@@ -76,7 +83,7 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
     return () => { clearTimeout(timer); gate.cancel(); };
   }, [query, market.code, busy]);
 
-  const examples = tArray('homepage.hero.examples.items');
+  const examples = exampleItems ?? tArray('homepage.hero.examples.items');
 
   return (
     <form onSubmit={handleSubmit} className={`search-input relative w-full max-w-3xl ${homepage ? "home-request" : ""}`}>
@@ -134,20 +141,22 @@ export function SearchInput({ market, onSearch, placeholder, showModes = true, h
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2 mt-3 request-examples">
-        {examples.map((item, index) => (
-          <button
-            key={index}
+      <div className="flex flex-wrap items-center gap-2 mt-3 request-examples">
+        {examplesLabel && <span className="example-label">{examplesLabel}</span>}
+        {examples.map((item, index) => {
+          const example = typeof item === 'string' ? { label: item, query: item } : item;
+          return <button
+            key={`${example.query}-${index}`}
             type="button"
             disabled={busy}
             onClick={() => {
-              submit(item);
+              submit(example.query);
             }}
             className={`search-example ${homepage ? "" : "whitespace-nowrap"}`}
           >
-            {item}
-          </button>
-        ))}
+            {example.label}
+          </button>;
+        })}
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
