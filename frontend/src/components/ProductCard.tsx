@@ -38,51 +38,41 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             {t(action.key, action.params)}
           </div>
         )}
-
       </div>
 
       <div className="product-card-body">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="line-clamp-2 break-words min-w-0 flex-1">
-            <button type="button" className="text-left w-full line-clamp-2 break-words" onClick={(e) => { e.stopPropagation(); onClick(product); }}>
-              {product.name}
-            </button>
-          </h3>
-        </div>
-
-        {offer && <span className="merchant-badge">
-          {merchant || t('product.merchantUnavailable')}
-        </span>}
-        {brand && (
-          <p className="product-card-brand">{brand}</p>
-        )}
-
-        <div className="flex items-center justify-between">
-          <div>
-            {offer && (
-              <span className="product-card-price">
-                {formatMoney(offer.priceAmount, offer.currencyCode)}
-              </span>
-            )}
-          </div>
+        {(brand || availability) && <div className="product-card-kicker">
+          {brand && <p className="product-card-brand">{brand}</p>}
           {availability && <span className="product-card-availability">{t(availability)}</span>}
-        </div>
-        {condition && <p className="product-card-condition">{condition}</p>}
+        </div>}
 
-        {offer && <MerchantLink offer={offer} className="mt-3 w-full" />}
-        {offerCount <= 1 && <button type="button" onClick={event => { event.stopPropagation(); onClick(product); }}
-          className="product-card-action">{t(action.key, action.params)}</button>}
-        {offerCount > 1 && offer && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onClick(product); }}
-            className="product-card-action"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19l9 2m0 0l-2-4m2 4l2-4m-6 11V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2v-2" />
-            </svg>
-            {t(action.key, action.params)}
+        <h3 className="line-clamp-2 break-words min-w-0">
+          <button type="button" className="text-left w-full line-clamp-2 break-words" onClick={(e) => { e.stopPropagation(); onClick(product); }}>
+            {product.name}
           </button>
-        )}
+        </h3>
+
+        {(offer || condition) && <div className="product-card-offer">
+          {offer && <span className="merchant-badge">
+            {merchant || t('product.merchantUnavailable')}
+          </span>}
+          {condition && <span className="product-card-condition">{condition}</span>}
+        </div>}
+
+        <div className="product-card-price-row">
+          {offer && <span className="product-card-price">
+            {formatMoney(offer.priceAmount, offer.currencyCode)}
+          </span>}
+        </div>
+
+        <div className="product-card-actions">
+          {offer && <MerchantLink offer={offer} className="product-card-cta" />}
+          <button type="button" onClick={event => { event.stopPropagation(); onClick(product); }}
+            className="product-card-action">
+            {t(action.key, action.params)}
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
       </div>
     </article>
   );

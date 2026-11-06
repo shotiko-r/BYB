@@ -23,7 +23,7 @@ export function ProductDetailContent({ product, market }: { product: ProductWith
   const brand = knownText(product.brand);
   return <main className="product-detail flex-1"><div className="byb-container">
     <nav className="product-breadcrumb" aria-label={t('product.p1.breadcrumb')}>
-      <Link href="/">{t('product.breadcrumb.home')}</Link><span aria-hidden="true">/</span>
+      <Link href={`/?market=${market.code}`}>{t('product.breadcrumb.home')}</Link><span aria-hidden="true">/</span>
       <Link href={`/search?market=${market.code}`}>{t('product.breadcrumb.search')}</Link><span aria-hidden="true">/</span>
       <span className="product-breadcrumb-current" aria-current="page">{product.name}</span>
     </nav>
@@ -34,8 +34,10 @@ export function ProductDetailContent({ product, market }: { product: ProductWith
       </div>
       <div className="product-purchase-content">
         <header className="product-identity">
+          <p className="product-detail-kicker">{t('product.detailKicker')}</p>
           {brand && <p className="product-brand">{brand}</p>}
           <h1>{product.name}</h1>
+          <p className="product-identity-note">{t('product.identityNote')}</p>
         </header>
         {group && <ProductVariations group={group} selections={selections}
           onChange={selections => setChoice({ productId: product.id, selections })} />}

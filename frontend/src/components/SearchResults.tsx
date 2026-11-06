@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useTransition } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { SearchOptions } from '@byb/shared';
 import { searchState, searchHref, searchValidation, requestForState, type SearchPageParams, type SearchState } from '@/lib/search-presentation';
@@ -76,38 +77,90 @@ export function SearchResultsView({ searchParams, navigate, openProduct = naviga
   const error = !validation && state.q && current?.error;
   const options = catalog?.market === state.market ? catalog.options : undefined;
   const change = (patch: Partial<SearchState>) => navigate(searchHref(state, patch));
-  return <div className="flex flex-col min-h-screen">
+  return <div className="byb-commerce search-shell flex min-h-screen flex-col">
     <Header markets={MARKETS} selectedMarket={selectedMarket} onMarketChange={market => change({ market: market.code })} />
-    <main className="search-page flex-1"><div className="byb-container">
-      <div className="search-page-input">
-        <SearchInput key={state.q} initialQuery={state.q} market={selectedMarket} onSearch={q => change({ q })} showModes={false} />
-      </div>
-      <SearchFilters key={`${state.currency}:${state.minPrice}:${state.maxPrice}`} state={state} options={options} onChange={change} pending={pending} />
-      {catalog?.market === state.market && catalog.error && <div role="alert" className="search-inline-error">
-        {t('search.optionsError')} <button type="button" className="underline" onClick={() => setCatalogRetry(value => value + 1)}>{t('common.retry')}</button>
-      </div>}
-      {validation && <p role="alert" className="search-alert">{t(`search.${validation}`)}</p>}
-      {loading && <p role="status" className="search-loading">{t('common.loading')}</p>}
-      {error && <div role="alert" className="search-alert">
-        <p>{t('search.requestError')}</p><button type="button" className="btn-secondary mt-2" onClick={() => setRetry(value => value + 1)}>{t('common.retry')}</button>
-      </div>}
-      {!state.q && <div className="py-12 text-center"><h1 className="text-xl">{t('search.startSearch')}</h1><p className="search-help-copy">{t('search.enterQuery')}</p></div>}
-      {data && <>
-        <p role="status" className="search-result-count">{t('search.bybResults', { count: data.products.length, total: data.total, query: state.q })}</p>
-        {data.products.length === 0 && <div className="py-12 text-center">
-          <h2 className="text-xl">{t('search.noResults')}</h2><p className="search-help-copy">{t('search.tryAdjusting')}</p>
-          <button type="button" className="btn-secondary mt-4" onClick={() => change({ q: '' })}>{t('search.clearSearch')}</button>
-        </div>}
-        <div className="search-product-grid">
-          {data.products.map(product => <ProductCard key={product.id} product={product} market={selectedMarket}
-            onClick={() => openProduct(`/product/${product.id}?market=${state.market}`)} />)}
+    <main className="search-page flex-1">
+      <section className="search-hero" aria-labelledby="search-page-title">
+        <div className="byb-container search-hero-inner">
+          <div className="search-hero-top">
+            <div>
+              <p className="eyebrow">{t('search.eyebrow')}</p>
+              <h1 id="search-page-title">{state.q ? t('search.resultsFor', { query: state.q }) : t('search.startSearch')}</h1>
+              <p className="search-hero-subtitle">{t('search.subtitle')}</p>
+            </div>
+            <Link className="search-hero-link" href={`/?market=${state.market}`}>
+              {t('search.backHome')} <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          <div className="search-page-input">
+            <SearchInput key={state.q} initialQuery={state.q} market={selectedMarket} onSearch={q => change({ q })} showModes={false} />
+          </div>
         </div>
-        {data.totalPages > 1 && <nav aria-label="Pagination" className="flex justify-center items-center gap-3">
-          <button type="button" className="btn-secondary" disabled={state.page <= 1 || pending} onClick={() => change({ page: state.page - 1 })}>{t('search.previous')}</button>
-          <span>{t('search.pageOf', { page: state.page, totalPages: data.totalPages })}</span>
-          <button type="button" className="btn-secondary" disabled={state.page >= data.totalPages || pending} onClick={() => change({ page: state.page + 1 })}>{t('search.next')}</button>
-        </nav>}
-      </>}
-    </div></main><Footer market={selectedMarket.code} />
+      </section>
+      <div className="byb-container search-page-body">
+        <SearchFilters key={`${state.currency}:${state.minPrice}:${state.maxPrice}`} state={state} options={options} onChange={change} pending={pending} />
+        {catalog?.market === state.market && catalog.error && <div role="alert" className="search-inline-error">
+          {t('search.optionsError')} <button type="button" className="underline" onClick={() => setCatalogRetry(value => value + 1)}>{t('common.retry')}</button>
+        </div>}
+        {validation && <p role="alert" className="search-alert">{t(`search.${validation}`)}</p>}
+        {loading && <div role="status" aria-live="polite" className="search-loading-state">
+          <p className="search-loading-label">{t('common.loading')}</p>
+          <div className="search-skeleton-grid" aria-hidden="true">
+            {[0, 1, 2, 3].map(item => <div className="product-skeleton" key={item}>
+              <div className="product-skeleton-media" />
+              <div className="product-skeleton-body">
+                <span className="product-skeleton-line is-short" />
+                <span className="product-skeleton-line" />
+                <span className="product-skeleton-line is-price" />
+              </div>
+            </div>)}
+          </div>
+        </div>}
+        {error && <div role="alert" className="commerce-state">
+          <span className="commerce-state-icon" aria-hidden="true">!</span>
+          <h2>{t('search.requestError')}</h2>
+          <p>{t('search.tryAdjusting')}</p>
+          <div className="commerce-state-actions">
+            <button type="button" className="btn-primary" onClick={() => setRetry(value => value + 1)}>{t('common.retry')}</button>
+          </div>
+        </div>}
+        {!state.q && <div className="commerce-state search-empty-state">
+          <span className="commerce-state-icon" aria-hidden="true">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" strokeWidth="1.8" /><path d="m20 20-4.2-4.2" strokeLinecap="round" strokeWidth="1.8" /></svg>
+          </span>
+          <h2>{t('search.startSearch')}</h2>
+          <p>{t('search.enterQuery')}</p>
+          <div className="commerce-state-actions">
+            <Link href={`/?market=${state.market}`} className="btn-primary">{t('search.browseHome')}</Link>
+          </div>
+        </div>}
+        {data && <>
+          <div className="search-results-head">
+            <p role="status" className="search-result-count">{t('search.bybResults', { count: data.products.length, total: data.total, query: state.q })}</p>
+            {data.products.length > 0 && <p className="search-results-note">{t('search.resultsNote')}</p>}
+          </div>
+          {data.products.length === 0 && <div className="commerce-state search-empty-state">
+            <span className="commerce-state-icon" aria-hidden="true">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 7h16M7 4v6m10-6v6M5 11h14l-1.2 8.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 11Z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" /></svg>
+            </span>
+            <h2>{t('search.noResults')}</h2>
+            <p>{t('search.tryAdjusting')}</p>
+            <div className="commerce-state-actions">
+              <button type="button" className="btn-secondary" onClick={() => change({ q: '' })}>{t('search.clearSearch')}</button>
+            </div>
+          </div>}
+          <div className="search-product-grid">
+            {data.products.map(product => <ProductCard key={product.id} product={product} market={selectedMarket}
+              onClick={() => openProduct(`/product/${product.id}?market=${state.market}`)} />)}
+          </div>
+          {data.totalPages > 1 && <nav aria-label="Pagination" className="search-pagination">
+            <button type="button" className="btn-secondary" disabled={state.page <= 1 || pending} onClick={() => change({ page: state.page - 1 })}>{t('search.previous')}</button>
+            <span className="search-pagination-status">{t('search.pageOf', { page: state.page, totalPages: data.totalPages })}</span>
+            <button type="button" className="btn-secondary" disabled={state.page >= data.totalPages || pending} onClick={() => change({ page: state.page + 1 })}>{t('search.next')}</button>
+          </nav>}
+        </>}
+      </div>
+    </main>
+    <Footer market={selectedMarket.code} />
   </div>;
 }

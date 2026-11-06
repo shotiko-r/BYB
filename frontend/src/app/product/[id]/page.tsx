@@ -2,6 +2,7 @@
 
 import { ProductDetailContent } from '@/components/ProductDetailContent';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { api } from '@/lib/api';
@@ -25,6 +26,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
   const [product, setProduct] = useState<ProductWithOffers | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -47,7 +49,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
         setLoading(false);
       }
     })();
-  }, [params, searchParams, markets, t]);
+  }, [params, searchParams, markets, t, retry]);
 
   const handleMarketChange = (market: Market) => {
     setSelectedMarket(market);
@@ -57,6 +59,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
         const { id } = await params;
         const data = await api.products.get(id, market.code);
         setProduct(data);
+        setError(null);
       } catch (err) {
         setError(t('common.failedToLoad'));
       } finally {
@@ -67,12 +70,17 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="byb-commerce product-shell flex min-h-screen flex-col">
         <Header markets={markets} selectedMarket={selectedMarket} onMarketChange={handleMarketChange} />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="product-loading-spinner animate-spin" />
-            <p className="product-state-copy">{t('common.loading')}</p>
+        <main className="product-detail flex-1">
+          <div className="byb-container">
+            <div className="product-loading-layout" role="status" aria-busy="true">
+              <span className="sr-only">{t('common.loading')}</span>
+              <div className="product-loading-gallery" aria-hidden="true" />
+              <div className="product-loading-copy" aria-hidden="true">
+                <span /><span /><span /><span />
+              </div>
+            </div>
           </div>
         </main>
         <Footer market={selectedMarket.code} />
@@ -82,18 +90,25 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
 
   if (error || !product) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="byb-commerce product-shell flex min-h-screen flex-col">
         <Header markets={markets} selectedMarket={selectedMarket} onMarketChange={handleMarketChange} />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center px-4">
-            <svg className="product-state-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <h1 className="text-2xl mb-2">{t('common.productNotFound')}</h1>
-            <p className="product-state-copy mb-6">{error}</p>
-            <a href={`/search?market=${selectedMarket.code}`} className="btn-primary">
-              {t('common.backToSearch')}
-            </a>
+        <main className="product-detail flex-1">
+          <div className="byb-container">
+            <div className="commerce-state" role="alert">
+              <span className="commerce-state-icon" aria-hidden="true">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </span>
+              <h1>{t('common.productNotFound')}</h1>
+              <p>{error || t('common.failedToLoad')}</p>
+              <div className="commerce-state-actions">
+                <button type="button" className="btn-primary" onClick={() => setRetry(value => value + 1)}>{t('common.retry')}</button>
+                <Link href={`/search?market=${selectedMarket.code}`} className="btn-secondary">
+                  {t('common.backToSearch')}
+                </Link>
+              </div>
+            </div>
           </div>
         </main>
         <Footer market={selectedMarket.code} />
@@ -102,7 +117,7 @@ export default function ProductPage({ params, searchParams }: { params: Promise<
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="byb-commerce product-shell flex min-h-screen flex-col">
       <Header markets={markets} selectedMarket={selectedMarket} onMarketChange={handleMarketChange} />
       <ProductDetailContent product={product} market={selectedMarket} />
       <Footer market={selectedMarket.code} />

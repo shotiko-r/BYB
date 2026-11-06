@@ -15,6 +15,13 @@ export function SearchFilters({ state, options, onChange, pending = false }: {
   const categories = options?.categories ?? [];
   const priceText = (value: string) => { try { return formatMoney(Number(value), state.currency); } catch { return value; } };
   return <section className="search-filters" aria-label={t('search.filters')}>
+    <div className="search-filter-head">
+      <div>
+        <p className="search-filter-kicker">{t('search.filterKicker')}</p>
+        <h2>{t('search.filters')}</h2>
+      </div>
+      <button type="button" className="filter-clear" onClick={() => onChange(clearedFilters())}>{t('search.clearFilters')}</button>
+    </div>
     <div className="filter-toolbar">
       <label className="filter-control">{t('search.sortBy')}
         <select id="sort" className="filter-select" value={state.sort} disabled={pending} onChange={event => onChange({ sort: event.target.value as SearchState['sort'] })}>
@@ -82,7 +89,6 @@ export function SearchFilters({ state, options, onChange, pending = false }: {
       {(state.minPrice !== '' || state.maxPrice !== '') && <button type="button" className="active-filter" onClick={() => onChange({ minPrice: '', maxPrice: '' })}>
         {t('search.priceRange')}: {state.minPrice !== '' ? priceText(state.minPrice) : '0'} – {state.maxPrice !== '' ? priceText(state.maxPrice) : '∞'} ×
       </button>}
-      <button type="button" className="filter-clear" onClick={() => onChange(clearedFilters())}>{t('search.clearFilters')}</button>
     </div>
   </section>;
 }

@@ -26,6 +26,7 @@ export function ProductOfferSummary({ product, market = 'GE' }: { product: Produ
 
   return <section className="purchase-panel" aria-label={t('product.offerDetails')}>
     {offer ? <>
+      <p className="purchase-eyebrow">{t('product.offerSnapshot')}</p>
       <div className="purchase-offer-head">
         <p className="purchase-merchant">{merchantName(offer.merchant) || t('product.merchantUnavailable')}</p>
         {availability && <p className="purchase-availability">{t(availability)}</p>}
