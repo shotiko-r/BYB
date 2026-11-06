@@ -82,7 +82,6 @@ export default function HomePage() {
       <Header markets={markets} selectedMarket={selectedMarket} onMarketChange={handleMarketChange} />
       <main className="flex-1">
         <Hero market={selectedMarket} previewProduct={ledgerProduct} previewLoading={loading} />
-        <HomeCommitments />
         <ExploreSection market={selectedMarket.code} products={visibleProducts} />
         <DiscoverySections
           productsBySection={productsBySection}
@@ -93,6 +92,7 @@ export default function HomePage() {
           unavailableSections={unavailableSections}
           onRetry={() => setRetryCount(count => count + 1)}
         />
+        <HomeCommitments />
         <MerchantSources market={selectedMarket.code} />
         <TrustSection market={selectedMarket.code} />
       </main>

@@ -22,6 +22,24 @@ test('header search and disclosures expose semantic controls and preserve market
   }
 });
 
+test('Georgian header and footer chrome is fully translated', () => {
+  const html = renderToStaticMarkup(<I18nProvider defaultLocale="ka"><Header markets={[market]} selectedMarket={market} onMarketChange={() => {}} /><Footer /></I18nProvider>);
+  for (const text of ['როგორ მუშაობს', 'ჩვენს შესახებ', 'ძიება BYB-ში', 'BYB-ის შესახებ', 'გამჭვირვალობა', 'პარტნიორები']) assert.ok(html.includes(text), text);
+  for (const text of ['How it works', 'Search BYB', 'Partner with BYB', 'Affiliate Disclosure', '>About<']) assert.ok(!html.includes(text), text);
+});
+
+test('curated quick links are localized in both menus without changing their destinations', () => {
+  const en = renderToStaticMarkup(<I18nProvider defaultLocale="en"><Header markets={[market]} selectedMarket={market} onMarketChange={() => {}} /></I18nProvider>);
+  const ka = renderToStaticMarkup(<I18nProvider defaultLocale="ka"><Header markets={[market]} selectedMarket={market} onMarketChange={() => {}} /></I18nProvider>);
+  for (const links of Object.values(categoryQuickLinks)) for (const [label, query] of links) {
+    const href = querySearchHref(query, 'GE').replaceAll('&', '&amp;');
+    assert.equal(en.split(`href="${href}"`).length, ka.split(`href="${href}"`).length);
+    assert.ok(!ka.includes(`>${label}</a>`), label);
+  }
+  assert.ok(ka.includes('>ყურსასმენები</a>'));
+  assert.ok(!ka.includes('header.quickLinks.'));
+});
+
 test('all header and footer destinations resolve to implemented routes and valid homepage anchors', () => {
   const html = render(<><Header markets={[market]} selectedMarket={market} onMarketChange={() => {}} /><Footer /></>);
   for (const match of html.matchAll(/href="([^"]+)"/g)) {

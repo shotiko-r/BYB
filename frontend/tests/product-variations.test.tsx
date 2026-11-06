@@ -89,7 +89,7 @@ test('short descriptions stay fully visible without a toggle or scroll trap', ()
 });
 
 test('P2.2R real four-dimension iPod selects exact current member, price, image and CTA', async () => {
-  const { default: fixture } = await import('../../backend/tests/fixtures/ebay-ipod-variation-group.json');
+  const { default: fixture } = await import('./fixtures/ebay-ipod-variation-group.json');
   // API-shaped public fixture; backend regression separately checks normalization and transport.
   const names = ['Generation', 'Color', 'Condition', 'Storage Capacity'];
   const realGroup: VariationGroup = {
@@ -123,7 +123,7 @@ test('P2.2R real four-dimension iPod selects exact current member, price, image 
 });
 
 test('P2.2R sanitized detail keeps actual description and hides decorated seller cross-sell', async () => {
-  const { default: fixture } = await import('../../backend/tests/fixtures/ebay-ipod-variation-group.json');
+  const { default: fixture } = await import('./fixtures/ebay-ipod-variation-group.json');
   const html = render(<ProductDetailContent product={{ ...product, description: fixture.expectedDescription }} market={market} />);
   assert.ok(html.includes('These iPods are tested and functional.'));
   assert.ok(!html.includes('Suggested Products'));

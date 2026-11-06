@@ -146,14 +146,14 @@ const requests = [];
     await call('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...rect });
     await call('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...rect });
   };
-  for (const width of [320, 375, 390, 768, 1440]) {
+  for (const width of [320, 375, 390, 768, 1280, 1440]) {
     await call('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: false });
     for (const theme of ['dark', 'light']) {
       await call('Page.navigate', { url: `${origin}/about?market=AM` }); await waitText('Better purchase decisions');
       await until(() => evaluate(`document.querySelector('.header-utilities select').value==='2'`), 'market hydration');
       await select('Theme', theme); await until(() => evaluate(`document.documentElement.dataset.theme==='${theme}'`), 'theme applied');
       await overflow(); await screenshot(`${width}-${theme}-about`);
-      if (width === 1440) {
+      if (width >= 1280) {
         await evaluate(`document.querySelector('[aria-controls="nav-discover"]').focus()`); await key('Enter');
         await until(() => evaluate(`!document.querySelector('#nav-discover').hidden`), 'Enter opens Discover');
         await key('Escape'); await check(`document.querySelector('#nav-discover').hidden && document.activeElement.getAttribute('aria-controls')==='nav-discover'`, 'Escape restores focus');
@@ -207,7 +207,15 @@ const requests = [];
   await waitText('შეადარე რეალური შეთავაზება და არა რეკლამა.');
   await check(`document.querySelector('.home-steps').innerText.includes('შეადარეთ')`, 'Georgian homepage steps');
   await overflow();
-  console.log(JSON.stringify({ passed: true, widths: [320,375,390,768,1440], themes: ['dark','light'], checks: ['Discover toggles','mega menu','Enter/ArrowDown/Escape','focus return','outside click','mobile nested categories','market preservation','search submission','preferences','public pages','category-first home','six categories','three shelves','offer ledger','no overflow'], screenshots: '/tmp/byb-nav1-*.png' }));
+  for (const width of [320, 390, 768, 1280]) {
+    await call('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: false });
+    for (const theme of ['light', 'dark']) {
+      await select('თემა', theme);
+      await until(() => evaluate(`document.documentElement.dataset.theme==='${theme}'`), 'Georgian theme applied');
+      await overflow(); await screenshot(`${width}-${theme}-ka-home`, true);
+    }
+  }
+  console.log(JSON.stringify({ passed: true, widths: [320,375,390,768,1280,1440], themes: ['dark','light'], checks: ['Discover toggles','mega menu','Enter/ArrowDown/Escape','focus return','outside click','mobile nested categories','market preservation','search submission','preferences','public pages','category-first home','six categories','three shelves','offer ledger','no overflow'], screenshots: join(tmpdir(), 'byb-nav1-*.png') }));
 })().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => {
   ws?.close(); children.reverse().forEach(child => child.kill('SIGTERM'));
 });

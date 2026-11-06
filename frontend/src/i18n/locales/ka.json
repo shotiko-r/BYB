@@ -1,7 +1,7 @@
 {
   "common": {
     "search": "ძიება",
-    "discover": "აღმოკრება",
+    "discover": "აღმოჩენა",
     "deals": "შეთავაზებები",
     "guides": "გზნები",
     "categories": "კატეგორიები",
@@ -294,18 +294,68 @@
       "dark": "მუქი"
     },
     "nav": {
-      "discover": "აღმოკრება",
+      "discover": "აღმოჩენა",
       "deals": "შეთავაზებები",
       "guides": "გზნები",
-      "categories": "კატეგორიები"
+      "categories": "კატეგორიები",
+      "howItWorks": "როგორ მუშაობს",
+      "about": "ჩვენს შესახებ",
+      "partners": "პარტნიორები"
     },
     "market": "ბაზარი",
     "language": "ენა",
     "selectMarket": "ბაზარის არჩევა",
     "selectLanguage": "ენის არჩევა",
     "search": "ძიება BYB-ში",
+    "searchPlaceholder": "ძიება BYB-ში",
     "navigation": "მთავარი ნავიგაცია",
-    "openMenu": "ნავიგაციის მენიუს გახსნა"
+    "openMenu": "ნავიგაციის მენიუს გახსნა",
+    "preferences": "პარამეტრები",
+    "discoverHint": "ფასების შერჩევები ეძებს აქსესუარებს აშშ დოლარში.",
+    "categoriesTitle": "კატეგორიების დათვალიერება",
+    "categoriesHint": "შერჩეული ძიებები დასაწყებად.",
+    "exploreCategory": "კატეგორიის ნახვა",
+    "quickLinks": {
+      "Phones": "ტელეფონები",
+      "Headphones": "ყურსასმენები",
+      "Laptops": "ლეპტოპები",
+      "Cameras": "კამერები",
+      "Gaming": "გეიმინგი",
+      "Smart Home": "ჭკვიანი სახლი",
+      "Accessories": "აქსესუარები",
+      "Brakes": "მუხრუჭები",
+      "Lighting": "განათება",
+      "Interior": "ინტერიერი",
+      "Exterior": "ექსტერიერი",
+      "Electronics": "ელექტრონიკა",
+      "Tools": "ხელსაწყოები",
+      "Kitchen Appliances": "სამზარეულოს ტექნიკა",
+      "Coffee": "ყავა",
+      "Cleaning": "დასუფთავება",
+      "Furniture": "ავეჯი",
+      "Storage": "შენახვა",
+      "Home Improvement": "სახლის მოწყობა",
+      "Clothing": "ტანსაცმელი",
+      "Shoes": "ფეხსაცმელი",
+      "Bags": "ჩანთები",
+      "Camping": "კემპინგი",
+      "Cycling": "ველოსპორტი",
+      "Fitness": "ფიტნესი",
+      "Hiking": "ლაშქრობა",
+      "Power Tools": "ელექტროხელსაწყოები",
+      "Hand Tools": "ხელის ხელსაწყოები",
+      "Electrical": "ელექტრო სამუშაოები",
+      "Workshop": "სახელოსნო",
+      "Measuring": "საზომი ხელსაწყოები",
+      "Skincare": "კანის მოვლა",
+      "Hair Care": "თმის მოვლა",
+      "Grooming": "პირადი მოვლა",
+      "Beauty Tools": "სილამაზის ხელსაწყოები",
+      "Toys": "სათამაშოები",
+      "Games": "თამაშები",
+      "Learning": "განმავითარებელი სათამაშოები",
+      "Outdoor Play": "ეზოს თამაშები"
+    }
   },
   "search": {
     "filters": "ძიების ფილტრები",
@@ -474,9 +524,16 @@
   },
   "footer": {
     "tagline": "Before You Buy — მაღაზიებში ნუ ეძებ. უთხარი BYB-ს რა გჭირდება.",
+    "home": "BYB მთავარი",
+    "compareNote": "შეადარე აქ. იყიდე გამყიდველის ვებგვერდზე.",
     "product": "პროდუქტი",
     "company": "კომპანია",
     "legal": "კანონმდებლობა",
+    "sections": {
+      "explore": "BYB-ს შესწავლა",
+      "about": "BYB-ის შესახებ",
+      "transparency": "გამჭვირვალობა"
+    },
     "links": {
       "search": "ძიება",
       "trending": "პოპულარული",
@@ -484,15 +541,18 @@
       "categories": "კატეგორიები",
       "newReleases": "ახალი გამოშვებები",
       "about": "ჩვენს შესახებ",
+      "howItWorks": "როგორ მუშაობს",
+      "partners": "ითანამშრომლე BYB-თან",
+      "contact": "კონტაქტი",
       "blog": "ბლოგი",
       "careers": "კარიერა",
       "press": "პრესა",
       "privacy": "კონფიდენციალურობა",
       "terms": "წესები",
       "cookies": "Cookie-ები",
-      "affiliate": "Affiliate Disclosure"
+      "affiliate": "პარტნიორული გამჟღავნება"
     },
-    "copyright": "© {{year}} BYB. All rights reserved. არ არის ონლაინ მაღაზია — ჯერ შემოწმდი, შემდეგ ვყიდი.",
+    "copyright": "© {{year}} BYB. ყველა უფლება დაცულია. არ არის ონლაინ მაღაზია — გეხმარებით შედარებაში ყიდვამდე.",
     "markets": "ბაზრები"
   },
   "explore": {

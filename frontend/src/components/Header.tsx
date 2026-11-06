@@ -24,11 +24,11 @@ export function Header({ markets, selectedMarket, onMarketChange }: HeaderProps)
   const market = selectedMarket.code;
   const home = `/?market=${market}`;
   const discover = [
-    ['Discover', `${home}#discovery`],
-    ['New on BYB', `/search?${new URLSearchParams({ q: 'headphones', sort: 'newest', market })}`],
-    ['Under US$25', `/search?${new URLSearchParams({ q: 'accessories', currency: 'USD', maxPrice: '2500', market })}`],
-    ['Under US$50', `/search?${new URLSearchParams({ q: 'accessories', currency: 'USD', maxPrice: '5000', market })}`],
-    ['More to Explore', `${home}#explore`],
+    [t('header.nav.discover'), `${home}#discovery`],
+    [t('homepage.sections.newOnByb'), `/search?${new URLSearchParams({ q: 'headphones', sort: 'newest', market })}`],
+    [t('homepage.sections.under25'), `/search?${new URLSearchParams({ q: 'accessories', currency: 'USD', maxPrice: '2500', market })}`],
+    [t('homepage.sections.under50'), `/search?${new URLSearchParams({ q: 'accessories', currency: 'USD', maxPrice: '5000', market })}`],
+    [t('homepage.sections.more'), `${home}#explore`],
   ];
   useEffect(() => {
     const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpen(null); };
@@ -50,12 +50,12 @@ export function Header({ markets, selectedMarket, onMarketChange }: HeaderProps)
         <Link href={home} aria-label="BYB — Before You Buy"><Logo /></Link>
         <nav className="header-nav" aria-label={t('header.navigation')}>
           {(['discover', 'categories'] as const).map(name => <button key={name} aria-expanded={open === name} aria-controls={`nav-${name}`} onKeyDown={event => { if (event.key === 'ArrowDown') { event.preventDefault(); trigger.current = event.currentTarget; setOpen(name); requestAnimationFrame(() => document.querySelector<HTMLAnchorElement>(`#nav-${name} a`)?.focus()); } }} onClick={event => toggle(name, event.currentTarget)}>{t(`header.nav.${name}`)} <span aria-hidden="true">⌄</span></button>)}
-          <Link href={`/how-it-works?market=${market}`}>How it works</Link>
-          <Link href={`/about?market=${market}`}>About</Link>
+          <Link href={`/how-it-works?market=${market}`}>{t('header.nav.howItWorks')}</Link>
+          <Link href={`/about?market=${market}`}>{t('header.nav.about')}</Link>
         </nav>
         <form className="header-search" action="/search" method="get" role="search" aria-label={t('header.search')}>
           <label className="sr-only" htmlFor="header-search-input">{t('header.search')}</label>
-          <input id="header-search-input" type="search" name="q" required maxLength={120} autoComplete="off" placeholder="Search BYB" />
+          <input id="header-search-input" type="search" name="q" required maxLength={120} autoComplete="off" placeholder={t('header.searchPlaceholder')} />
           <input type="hidden" name="market" value={market} />
           <button type="submit" aria-label={t('header.search')}><SearchIcon /></button>
         </form>
@@ -72,23 +72,23 @@ export function Header({ markets, selectedMarket, onMarketChange }: HeaderProps)
           <button className="header-icon-action" aria-label={t('header.openMenu')} aria-expanded={open === 'mobile'} aria-controls="nav-mobile" onClick={event => toggle('mobile', event.currentTarget)}>☰</button>
         </div>
         <div id="nav-discover" className="nav-popover discover-popover" hidden={open !== 'discover'}>
-          <nav aria-label="Discover">{discover.map(([label, href]) => <Link key={label} href={href}>{label}</Link>)}</nav>
-          <p className="nav-hint">Price picks search accessories in USD.</p>
+          <nav aria-label={t('header.nav.discover')}>{discover.map(([label, href]) => <Link key={label} href={href}>{label}</Link>)}</nav>
+          <p className="nav-hint">{t('header.discoverHint')}</p>
         </div>
         <div id="nav-categories" className="nav-popover mega-popover" hidden={open !== 'categories'}>
-          <p>Explore by category</p><p className="nav-hint">Curated searches to help you get started.</p>
+          <p>{t('header.categoriesTitle')}</p><p className="nav-hint">{t('header.categoriesHint')}</p>
           <div className="mega-grid">{homepageCategories.map(category => <div key={category.id} className="mega-category">
             <Link className="mega-title" href={categorySearchHref(category.id, market)}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d={category.path} /></svg>{t(`homepage.h1.category.${category.id}`)}</Link>
-            <div>{categoryQuickLinks[category.id].map(([label, query]) => <Link key={query} href={querySearchHref(query, market)}>{label}</Link>)}</div>
+            <div>{categoryQuickLinks[category.id].map(([label, query]) => <Link key={query} href={querySearchHref(query, market)}>{t(`header.quickLinks.${label}`)}</Link>)}</div>
           </div>)}</div>
         </div>
         <div id="nav-mobile" className="header-mobile-panel" hidden={open !== 'mobile'}>
           <nav aria-label={t('header.navigation')}>
-            <details><summary>Discover</summary>{discover.map(([label, href]) => <Link key={label} href={href}>{label}</Link>)}</details>
-            <details><summary>Categories</summary>{homepageCategories.map(category => <details key={category.id}><summary>{t(`homepage.h1.category.${category.id}`)}</summary><Link href={categorySearchHref(category.id, market)}>Explore category</Link>{categoryQuickLinks[category.id].map(([label, query]) => <Link key={query} href={querySearchHref(query, market)}>{label}</Link>)}</details>)}</details>
-            <Link href={`/how-it-works?market=${market}`}>How it works</Link><Link href={`/about?market=${market}`}>About</Link><Link href={`/partners?market=${market}`}>Partners</Link>
+            <details><summary>{t('header.nav.discover')}</summary>{discover.map(([label, href]) => <Link key={label} href={href}>{label}</Link>)}</details>
+            <details><summary>{t('header.nav.categories')}</summary>{homepageCategories.map(category => <details key={category.id}><summary>{t(`homepage.h1.category.${category.id}`)}</summary><Link href={categorySearchHref(category.id, market)}>{t('header.exploreCategory')}</Link>{categoryQuickLinks[category.id].map(([label, query]) => <Link key={query} href={querySearchHref(query, market)}>{t(`header.quickLinks.${label}`)}</Link>)}</details>)}</details>
+            <Link href={`/how-it-works?market=${market}`}>{t('header.nav.howItWorks')}</Link><Link href={`/about?market=${market}`}>{t('header.nav.about')}</Link><Link href={`/partners?market=${market}`}>{t('header.nav.partners')}</Link>
           </nav>
-          <p>Preferences</p><div className="header-mobile-utilities">{utilities}</div>
+          <p>{t('header.preferences')}</p><div className="header-mobile-utilities">{utilities}</div>
         </div>
       </div>
     </header>
