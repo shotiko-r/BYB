@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@byb/shared": "file:../shared",
-    "next": "16.3.8",
+    "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "^3.22.0"
@@ -26,7 +26,7 @@
     "@types/react-dom": "19.3.0",
     "autoprefixer": "^10.6.1",
     "eslint": "^9.0.0",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.5",
     "postcss": "8.5.23",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.3.0"
