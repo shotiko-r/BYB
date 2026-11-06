@@ -81,6 +81,7 @@ test('active chips and controls display URL-selected filters and human price uni
     categories: [{ id: 'category', slug: 'headphones', name: 'Headphones', parentId: null }], currencies: ['USD'],
   }} />);
   for (const text of ['Active filters', 'eBay', 'AliExpress', 'Headphones', 'Currency', 'USD', '$0.29', '$19.99', 'Clear all filters']) assert.ok(html.includes(text), text);
+  assert.match(html, /role="group" aria-label="Active filters"/);
   assert.ok(html.includes('value="0.29"')); assert.ok(html.includes('value="19.99"'));
   assert.ok(html.includes('value="price_asc" selected=""'));
   assert.equal((html.match(/type="checkbox" checked=""/g) || []).length, 2);

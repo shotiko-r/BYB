@@ -23,7 +23,7 @@ export function HomeCommitments() {
           <p>{t(`homepage.commitments.${commitment.id}.description`)}</p>
         </article>)}
       </div>
-      <div className="home-steps" aria-label={t('homepage.steps.title')}>
+      <div className="home-steps" role="group" aria-label={t('homepage.steps.title')}>
         {(['search', 'compare', 'buy'] as const).map((step, index) => <div key={step}>
           <span aria-hidden="true">0{index + 1}</span>
           <h3>{t(`homepage.steps.${step}.title`)}</h3>

@@ -76,7 +76,7 @@ export function SearchFilters({ state, options, onChange, pending = false }: {
     </form>
     {priceError && <p role="alert" className="search-filter-error">{t('search.invalidRange')}</p>}
     <p className="currency-note">{t('search.currencyHelp')}</p>
-    <div className="active-filters" aria-label={t('search.activeFilters')}>
+    <div className="active-filters" role="group" aria-label={t('search.activeFilters')}>
       {state.merchant.length > 0 && <button type="button" className="active-filter" onClick={() => onChange({ merchant: [] })}>
         {t('search.merchants')}: {state.merchant.map(code => merchants.find(merchant => merchant.code === code)?.name || code).join(', ')} ×
       </button>}

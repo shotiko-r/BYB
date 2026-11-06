@@ -1411,6 +1411,7 @@ input[type="search"]::-webkit-search-cancel-button:hover {
 .product-card-image img { padding: 20px; }
 .product-card-body { display: flex; flex-direction: column; flex: 1; padding: 6px 18px 17px; }
 .product-card h3 { font-size: 14px; line-height: 1.55; min-height: 44px; color: var(--byb-ink); }
+.product-card h3:focus-within { overflow: visible; }
 .product-card h3 button:hover { color: var(--byb-green); }
 .merchant-badge { align-self: start; display: inline-flex; max-width: 100%; width: fit-content; padding: 4px 9px; margin-bottom: 8px; border-radius: 6px; background: var(--byb-soft-green); color: var(--byb-green); font-size: 11px; font-weight: 600; overflow-wrap: anywhere; }
 .product-card-body > p { color: var(--byb-muted); font-size: 12px; }
@@ -1586,6 +1587,7 @@ input[type="search"]::-webkit-search-cancel-button:hover {
   .search-product-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
 }
 @media (max-width: 760px) {
+  html:has(.product-shell) { scroll-padding-bottom: 120px; }
   .search-page { padding-block: 22px 40px; }
   .filter-toolbar { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .search-filters { padding: 14px; border-radius: var(--byb-radius-lg); margin-bottom: 20px; }
@@ -1619,7 +1621,7 @@ input[type="search"]::-webkit-search-cancel-button:hover {
   .currency-note { font-size: 12px; }
 }
 .product-image-fallback { width: 100%; height: 100%; display: grid; place-items: center; background: var(--byb-page); color: var(--byb-muted); }
-.product-image-fallback > span { display: grid; justify-items: center; gap: 10px; font-size: 10px; font-weight: 600; letter-spacing: 2px; opacity: .7; }
+.product-image-fallback > span { display: grid; justify-items: center; gap: 10px; font-size: 10px; font-weight: 600; letter-spacing: 2px; }
 .search-page nav[aria-label="Pagination"] .btn-secondary { color: var(--byb-ink); background: var(--byb-surface); border-color: var(--byb-line); }
 
 /* Homepage H1: categories lead; persisted discovery keeps its source order. */
@@ -3318,12 +3320,14 @@ html[lang="ka"] :is(.product-brand, .purchase-merchant, .product-ledger-prices d
 .filter-control { font-size: 10px; letter-spacing: .03em; }
 .filter-select, .filter-price {
   min-height: 44px;
-  border-color: var(--byb-line);
+  border-color: #6e7d90;
   border-radius: 8px;
   background: var(--byb-raised);
   font-size: 13px;
 }
-.filter-select:hover, .filter-price:hover { border-color: var(--byb-line-strong); }
+:root[data-theme="dark"] .filter-select, :root[data-theme="dark"] .filter-price { border-color: #899ab5; }
+.filter-select:hover, .filter-price:hover { border-color: var(--byb-green); }
+:root[data-theme="dark"] .filter-select:hover, :root[data-theme="dark"] .filter-price:hover { border-color: var(--byb-green); }
 .filter-select:focus, .filter-price:focus { border-color: var(--byb-green); }
 .merchant-toggle span {
   min-height: 42px;

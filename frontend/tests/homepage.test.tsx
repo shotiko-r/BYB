@@ -74,7 +74,7 @@ test('offer ledger shows real prices, same-currency totals and honest missing sh
 
   const mixed = { ...product, offers: [{ ...product.offers[0], currencyCode: 'GEL' }, product.offers[1]] } as ProductWithOffers;
   const mixedHtml = render(<OfferLedgerPreview product={mixed} market={{ code: 'GE' } as Parameters<typeof Hero>[0]['market']} />);
-  assert.ok(mixedHtml.includes('aria-label="Total not calculated"')); assert.ok(mixedHtml.includes('—'));
+  assert.match(mixedHtml, /aria-hidden="true">—<\/span><span class="sr-only">Total not calculated<\/span>/);
 });
 
 test('commitments, merchant sources and trust copy make no payment or partnership claims', () => {
@@ -83,6 +83,7 @@ test('commitments, merchant sources and trust copy make no payment or partnershi
     'Know where the offers come from.', 'eBay', 'AliExpress', 'FMTC', 'does not imply a partnership',
     'Customs, duties and full landed cost are not calculated.']) assert.ok(html.includes(text), text);
   assert.ok(html.includes('/how-it-works?market=GE'));
+  assert.match(html, /class="home-steps" role="group" aria-label="How it works"/);
   assert.ok(html.includes('/affiliate-disclosure?market=GE'));
   assert.ok(!html.includes('Ask BYB'));
 });

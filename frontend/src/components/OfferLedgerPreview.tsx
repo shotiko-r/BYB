@@ -64,7 +64,7 @@ export function OfferLedgerPreview({ product, market, loading = false }: {
                   : <span className="ledger-unavailable">{t('homepage.ledger.shippingMissing')}</span>}</td>
                 <td>{row.total
                   ? <>{formatMoney(row.total.amount, row.total.currencyCode, locale)}{lowest && row.total.amount === lowest.amount && row.total.currencyCode === lowest.currencyCode && <small className="ledger-lowest">{t('homepage.ledger.lowest')}</small>}</>
-                  : <span className="ledger-unavailable" aria-label={t('homepage.ledger.totalUnavailable')}>—</span>}</td>
+                  : <span className="ledger-unavailable"><span aria-hidden="true">—</span><span className="sr-only">{t('homepage.ledger.totalUnavailable')}</span></span>}</td>
               </tr>;
             })}
           </tbody>
